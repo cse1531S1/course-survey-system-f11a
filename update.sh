@@ -3,7 +3,7 @@
 existing_remote=`git remote -v | egrep -o "[git@ | https\:\/\/]*github.com.*git" | uniq`
 
 if [ $# -ne 1 ]; then
-	echo "Usage: sh update.sh branch_name"
+	echo "Usage: ./$0 branch_name"
 	echo "Please enter a branch name"
     exit 1
 fi
