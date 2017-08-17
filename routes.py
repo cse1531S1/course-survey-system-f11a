@@ -1,5 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, user_input, question_list
+from server import app, question_list
 import csv
 
 #https://www.w3schools.com/w3css/w3css_templates.asp
