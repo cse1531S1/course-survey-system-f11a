@@ -25,7 +25,9 @@
   <!-- Question List -->
   <h1>Questions</h1>
   {% if questions %}
-    {% print questions %}
+    {% autoescape false %}
+      {{questions}}
+    {% endautoescape %}
   {%else%}
     No questions have been submitted
   {% endif %}

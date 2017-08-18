@@ -42,5 +42,5 @@ def questionlist():
 	with open('questionList.csv','r') as csv_in:
 		reader = csv.reader(csv_in)
 		question_list = list(reader)
-		string = "\n".join(item[0] for item in question_list)
-	return render_template('questions.html', questions = string)
+		stringVersion = "<br/>".join(item[0] for item in question_list)
+	return render_template('questions.html', questions = stringVersion)
