@@ -25,9 +25,7 @@
   <!-- Question List -->
   <h1>Questions</h1>
   {% if questions %}
-    {% for q in questions %}
-      <p> {{q}} </p>
-    {% endfor %}
+    {% print questions %}
   {%else%}
     No questions have been submitted
   {% endif %}
