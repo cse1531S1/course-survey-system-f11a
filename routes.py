@@ -15,8 +15,11 @@ def inList(list_current, to_find):
     return found
          
          
-def get_courses():
-    courses = get_sems()
+def get_list_of_courses():
+    semesters = get_sems()
+    courses = {}
+    for sem in semesters:
+        courses[sem] = get_courses(sem)
     return courses
     
 def get_sems():
@@ -33,12 +36,23 @@ def get_sems():
                         if(inList(semesters, row[1]) == False): #check not already in 
                             next_min = row[1]
                             found = True
-            print("Newest course is " + next_min)
             if(found):
                 semesters.append(next_min)
         #found = True
     return semesters
-
+    
+def get_courses(semester):
+    # This function takes in a semester and returns a list of its courses
+    courses = []
+    with open('courses.csv','r') as csv_in: #open the csv
+        reader = csv.reader(csv_in)
+        for row in reader: #for each row in the csv
+            if(row != [] and row[1] == semester):
+                courses.append(row[0])
+    
+    print("Sem: " + semester + " has courses: ")
+    print(courses)
+    return courses
 
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
@@ -72,7 +86,7 @@ def newsurvey():
     courses_list = []
     if True:
         # open course list csv and add to list of lists
-	    courses_list = get_courses()
+	    courses_list = get_list_of_courses()
 	    #pass though list of lists
     return render_template('newsurvey.html', courses = courses_list)
 
