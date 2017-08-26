@@ -32,7 +32,14 @@
     <h1> New Survey</h1>
     <h2>Please select a course from below</h2>
     
-    {{ courses }} <br>
+    <dl>
+        {% for sem in semesters %}
+            <dt>{{ sem }}</dt>
+            {% for course in courses[sem] %}
+                <dd>{{ course }}</dd><br>
+            {% endfor %}
+        {% endfor %}
+    </dl>
 
     End of list
 

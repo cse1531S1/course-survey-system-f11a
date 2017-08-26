@@ -50,8 +50,8 @@ def get_courses(semester):
             if(row != [] and row[1] == semester):
                 courses.append(row[0])
     
-    print("Sem: " + semester + " has courses: ")
-    print(courses)
+    #print("Sem: " + semester + " has courses: ")
+    #print(courses)
     return courses
 
 #LOGIN PAGE
@@ -85,10 +85,14 @@ def newquestions():
 def newsurvey():
     courses_list = []
     if True:
-        # open course list csv and add to list of lists
+        # open course list csv and add to dictionary
 	    courses_list = get_list_of_courses()
-	    #pass though list of lists
-    return render_template('newsurvey.html', courses = courses_list)
+	    
+	    #get semester list
+	    semesters = get_sems()
+	    
+	    #pass though dictionary and sem list
+    return render_template('newsurvey.html', courses = courses_list, semesters = semesters)
 
 #QUESTION LIST PAGE
 @app.route('/QuestionList')
