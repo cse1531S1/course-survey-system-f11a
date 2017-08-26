@@ -16,6 +16,8 @@ def inList(list_current, to_find):
          
          
 def get_list_of_courses():
+    # Get a list of ordered semester and creates a dictionary so that
+    # each semester has a list of it's associated courses
     semesters = get_sems()
     courses = {}
     for sem in semesters:
@@ -23,6 +25,7 @@ def get_list_of_courses():
     return courses
     
 def get_sems():
+    # This function reads from the courses csv and gets an ordered list of unique semesters
     semesters = []
     found = True
     while(found): #while a unique course has not been added
@@ -31,14 +34,12 @@ def get_sems():
             reader = csv.reader(csv_in)
             next_min = "zzzzz"
             for row in reader: #for each row in the csv
-                if(row != []):
-                    if(row[1] < next_min): #if the current semester is less than the minimum
-                        if(inList(semesters, row[1]) == False): #check not already in 
-                            next_min = row[1]
-                            found = True
+                 if(row != [] and row[1] < next_min): #if the current semester is less than the minimum
+                    if(inList(semesters, row[1]) == False): #check not already in 
+                        next_min = row[1]
+                        found = True
             if(found):
                 semesters.append(next_min)
-        #found = True
     return semesters
     
 def get_courses(semester):
@@ -49,9 +50,6 @@ def get_courses(semester):
         for row in reader: #for each row in the csv
             if(row != [] and row[1] == semester):
                 courses.append(row[0])
-    
-    #print("Sem: " + semester + " has courses: ")
-    #print(courses)
     return courses
 
 #LOGIN PAGE
@@ -83,7 +81,6 @@ def newquestions():
 #NEW SURVEY PAGE
 @app.route('/courseSelection')
 def newsurvey():
-    courses_list = []
     if True:
         # open course list csv and add to dictionary
 	    courses_list = get_list_of_courses()
