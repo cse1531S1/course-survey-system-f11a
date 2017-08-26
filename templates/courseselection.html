@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Dashboard</title>
+<title>Course Selection</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -15,16 +15,34 @@
 	 			<button class="w3-button">Add</button>
 				<div class="w3-dropdown-content w3-bar-block w3-card-4">
 	        		<a href="/NewQuestions" class="w3-bar-item w3-button">Add Question</a>
-					<a href="/courseSelection" class="w3-bar-item w3-button">Add Survey</a>
+					<a href="/NewSurvey" class="w3-bar-item w3-button">Add Survey</a>
 
 				</div>
 			</div>
 			<a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
 	  </div>
-	</div>
-	<h1>Admin Dashboard</h1>
-	<a href="/QuestionList">View Questions</a>
-
+    </div>
+	
 <!-- Page content -->
+
+    <!-- <form action="" method="post">
+        <input class="btn btn-default" type="submit" value="Submit"> 
+	</form> -->
+
+    <h1> New Survey</h1>
+    <h2>Please select a course from below</h2>
+    
+    <dl>
+        {% for sem in semesters %}
+            <dt>{{ sem }}</dt>
+            {% for course in courses[sem] %}
+                <!--   <dd>{{ course }}</dd><br>   -->
+                <dd><a href="/addSurvey/{{ sem }}/{{ course }}">{{ course }}</a><dd><br>
+            {% endfor %}
+        {% endfor %}
+    </dl>
+
+    End of list
+
 </body>
 </html>

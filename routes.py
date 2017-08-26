@@ -81,7 +81,7 @@ def newquestions():
     return render_template('newquestions.html')
 
 #NEW SURVEY PAGE
-@app.route('/NewSurvey')
+@app.route('/courseSelection')
 def newsurvey():
     courses_list = []
     if True:
@@ -92,7 +92,7 @@ def newsurvey():
 	    semesters = get_sems()
 	    
 	    #pass though dictionary and sem list
-    return render_template('newsurvey.html', courses = courses_list, semesters = semesters)
+    return render_template('courseselection.html', courses = courses_list, semesters = semesters)
 
 #QUESTION LIST PAGE
 @app.route('/QuestionList')
