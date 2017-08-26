@@ -16,7 +16,11 @@ def inList(list_current, to_find):
          
          
 def get_courses():
-    courses = []
+    courses = get_sems()
+    return courses
+    
+def get_sems():
+    semesters = []
     found = True
     while(found): #while a unique course has not been added
         found = False
@@ -25,18 +29,16 @@ def get_courses():
             next_min = "zzzzz"
             for row in reader: #for each row in the csv
                 if(row != []):
-                    #print(row)
-                    #print("and 1 is")
-                    #print(row[1])
                     if(row[1] < next_min): #if the current semester is less than the minimum
-                        if(inList(courses, row[1]) == False): #check not already in 
+                        if(inList(semesters, row[1]) == False): #check not already in 
                             next_min = row[1]
                             found = True
             print("Newest course is " + next_min)
             if(found):
-                courses.append(next_min)
+                semesters.append(next_min)
         #found = True
-    return courses
+    return semesters
+
 
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
