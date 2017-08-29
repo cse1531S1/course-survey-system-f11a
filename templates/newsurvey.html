@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>New Survey</title>
+<title>Course Selection</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -21,9 +21,27 @@
 			</div>
 			<a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
 	  </div>
-	</div>
-	<h1> New Survey</h1>
-
+    </div>
+	
 <!-- Page content -->
+
+    <!-- <form action="" method="post">
+        <input class="btn btn-default" type="submit" value="Submit"> 
+	</form> -->
+
+    <h1> New Survey</h1>
+    <h2>Please select a course from below</h2>
+    
+    <dl>
+        {% for sem in semesters %}
+            <dt>{{ sem }}</dt>
+            {% for course in courses[sem] %}
+                <dd>{{ course }}</dd><br>
+            {% endfor %}
+        {% endfor %}
+    </dl>
+
+    End of list
+
 </body>
 </html>
