@@ -27,16 +27,18 @@
 
     <h1> New Survey</h1>
     <h2>Please select a course from below</h2>
-    
-    <dl>
-        {% for sem in semesters %}
-            <dt>{{ sem }}</dt>
-            {% for course in courses[sem] %}
-                <!--   <dd>{{ course }}</dd><br>   -->
-                <dd><a href="/addSurvey/{{ sem }}/{{ course }}">{{ course }}</a><dd><br>
+	
+  <div class="w3-dropdown-hover">
+    {% for sem in semesters %}
+        <button class="w3-button">{{ sem }}</button>
+	<div class="w3-dropdown-content w3-bar-block w3-border">
+	    {% for course in courses[sem] %}
+    	        <a href="/addSurvey/{{ sem }}/{{ course }}" class="w3-bar-item w3-button">{{ course }}</a>
             {% endfor %}
-        {% endfor %}
-    </dl>
+        </div>
+	<br>
+    {% endfor %}
+</div>
 
     End of list
 
