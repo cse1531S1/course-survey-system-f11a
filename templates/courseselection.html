@@ -27,18 +27,17 @@
 
 	<h1> New Survey</h1>
     	<h2>Please select a course from below</h2>
-	
-	<div class="w3-dropdown-hover">
+
 		{% for sem in semesters %}
-			<button class="w3-button">{{ sem }}</button>
-			<div class="w3-dropdown-content w3-bar-block w3-border">
-			{% for course in courses[sem] %}
-				<a href="/addSurvey/{{ sem }}/{{ course }}" class="w3-bar-item w3-button">{{ course }}</a>
-			{% endfor %}
+			<div class="w3-dropdown-hover">
+			    <button class="w3-button">{{ sem }}</button>
+			    <div class="w3-dropdown-content w3-bar-block w3-border">
+			    {% for course in courses[sem] %}
+				    <a href="/addSurvey/{{ sem }}/{{ course }}" class="w3-bar-item w3-button">{{ course }}</a>
+			    {% endfor %}
+			    </div>
 			</div>
-			<br>
 		{% endfor %}
-	</div>
-	End of list
+		
 </body>
 </html>
