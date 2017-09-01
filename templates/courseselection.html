@@ -29,8 +29,8 @@
     	<h2>Please select a course from below</h2>
 
 		{% for sem in semesters %}
-			<div class="w3-dropdown-click">
-			    <button onclick="clickAble()" class="w3-button">{{ sem }}</button>
+			<div class="w3-dropdown-hover">
+			    <button class="w3-button">{{ sem }}</button>
 			    <div id = "semCourse" class="w3-dropdown-content w3-bar-block w3-border">
 			    {% for course in courses[sem] %}
 				    <a href="/addSurvey/{{ sem }}/{{ course }}" class="w3-bar-item w3-button w3-animate-zoom">{{ course }}</a>
@@ -43,12 +43,4 @@
 </html>
 
 <script>
-function clickAble() {
-    var x = document.getElementById("semCourse");
-    if (x.className.indexOf("w3-show") == -1) {
-        x.className += " w3-show";
-    } else { 
-        x.className = x.className.replace(" w3-show", "");
-    }
-}
-</script>
+
