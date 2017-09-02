@@ -1,13 +1,9 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, question_list
 import csv
-from classes import *
 
 #https://www.w3schools.com/w3css/w3css_templates.asp
-coursesObj = []
-semesters = []
 
-#--------------------------functions for constructing courses --------------------------------------
 def inList(list_current, to_find):
    # Takes in a list and a item
    # Determines if the item is in the list
@@ -56,34 +52,6 @@ def get_courses(semester):
                 courses.append(row[0])
     return courses
 
-# ----------------------------------------------------------------------------------------------------------
-#-----------------------------------Functions for classes -------------------------------------------------
-def get_all_courses():
-	courses = []
-	with open('courses.csv', 'r') as csv_in:
-		reader = csv.reader(csv_in)
-		for row in reader:
-			courses.append(row[1])
-	return courses
-
-#helper function find "COMPXXXX" in "XXXX". return 0 = no object found
-string1 = ""
-string2 = ""
-def findCourseInSem(string1, string2):
-	for course in coursesObj:
-		if course.get_coursename() == string2 and course.get_semname() == string1:
-			return course
-	return 0
-
-#helper function - find "SEM" object. return 0 = no object found.
-string = ""
-def findSemObj(string):
-	for sem in semesters:
-		if sem.get_semname() == string:
-			return sem
-	return 0
-
-
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
 def login():
@@ -95,15 +63,10 @@ def login():
 			return redirect(url_for('dashboard'))
 	return render_template('login.html', error=error)
 
-
-
 #ADMIN DASHBOARD
 @app.route('/Dashboard')
 def dashboard():
 	return render_template('dashboard.html')
-
-
-
 
 #NEW QUESTIONS PAGE
 @app.route('/NewQuestions',methods=["GET","POST"])
@@ -114,9 +77,6 @@ def newquestions():
             writer = csv.writer(csv_out)
             writer.writerow([question])
     return render_template('newquestions.html')
-
-
-
 
 #NEW SURVEY PAGE
 @app.route('/courseSelection')
@@ -131,7 +91,6 @@ def newsurvey():
 	    #pass though dictionary and sem list
     return render_template('courseselection.html', courses = courses_list, semesters = semesters)
 
-
 #QUESTION LIST PAGE
 @app.route('/QuestionList')
 def questionlist():
@@ -140,54 +99,13 @@ def questionlist():
 		question_list = list(reader)
 		stringVersion = "<br/>".join(item[0] for item in question_list)
 	return render_template('questions.html', questions = stringVersion)
-
-
-
-
-#SELECT QUESTIONS PAGE	
-@app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
-def courseObject(semestername, coursename):
-	instance = findCourseInSem(semestername, coursename)
-	
-	# if no instance previously made, make new instance
-	if instance == 0:
-		instance = Course(semestername, coursename)
-		coursesObj.append(instance)
-	
-	#local lists
-	question_list = []
-	selected_q = []
-	
-	with open('questionList.csv','r') as csv_in:
-		for row in csv.reader(csv_in):
-			question_list.append(row[0])
-	
-	#read selected checkbox
-	if request.method == "POST":
-		for q in question_list:
-			if request.form.get(q):
-				selected_q.append(q)
-		instance.save_questions(selected_q)
-		print("Saved:",instance.get_semname(), instance.get_coursename(), instance.get_questions())
-		
-		return redirect(url_for("questionselected"))
-	
-	return render_template('choosequestions.html', questions = question_list)
 	
 	
-#PAGE AFTER SELECTING QUESTIONS
-@app.route('/questionselected', methods=['GET','POST'])
-def questionselected():
-	if request.method == "POST":
-		name = request.form["bt"]
-		
-		if name == "createanother":
-			return redirect(url_for("newsurvey"))
-		
-		#change link to Rodney's page of answering survey
-		#if name == "surveylink":
-			#return (redirect(url_for("")
-	return render_template('questionselected.html')
+	
+	
+	
+	
+	
 	
 	
 

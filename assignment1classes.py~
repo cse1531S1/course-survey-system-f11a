@@ -1,0 +1,89 @@
+from routes import *
+#localhost/addSurvey/17s2/COMP2041
+#need to display questions, store selected questions to list using function, 
+
+class Semester(object):
+	def __init__(self, semname = ""):
+		self.__semname = semname
+		#self.addToList()
+	
+	#setters
+	def set_semname(self, name_new):
+		#assert(name!=NULL);
+		self.__semname = name_new
+	
+	#getters
+	def get_semname(self):
+		return self.__semname
+
+	
+class Course(Semester):
+	#on this level, variables are shared by all instances
+	
+	def __init__(self, coursename):
+		self.__coursename = coursename
+		self.questions = []
+	
+	#setters
+	def set_coursename(self, new_name):
+		self.__coursename = new_name
+
+	#getters
+	def get_coursename(self):
+		return self.__coursename
+	
+	def get_questions(self):
+		return self.questions
+		
+	
+	#member function
+	def addToQuestions(self, chosen_questions):
+		#fix
+		self.questions.append(chosen_questions)
+		
+	
+	
+class Answers(Course):
+	
+	def __init__(self, name):
+		self.answers = []
+		self.__responsename = name
+		
+	#setters
+	def set_responsename(self, new_name):
+		self.__responsename = new_name
+		
+	#getters
+	def getName(self):
+		return self.__responsename
+		
+	
+	def readAnswers(filename):
+		#fix
+		with open("answers.csv") as f:
+			response = f.readline()
+			print (response)
+
+#instantiate object for each semester using a list of objects
+semesters = [Semester(sem) for sem in get_sems()]
+
+#print all sem objects
+for sem in semesters:
+	print (sem.get_semname())
+
+#helper function - find "SEM" object
+string = ""
+def findSemObj(string):
+	for sem in semesters:
+		if sem.get_semname() == string:
+			return sem
+	return 0
+
+#checking if an object is instantiated
+if findSemObj("15s0"):
+	print(findSemObj("17s1").get_semname())
+	
+
+#sem = Semester('a')
+#isinstance(), issubclass()
+

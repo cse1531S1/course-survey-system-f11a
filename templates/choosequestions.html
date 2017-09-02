@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<title>Choose Questions</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style>	body {font-family: "Lato", sans-serif} </style>
+
+<body>
+<!-- Navbar -->
+	<div class="w3-container">
+		<div class="w3-bar w3-light-grey">
+			<a href="/Dashboard" class="w3-bar-item w3-button w3-right">Home</a> 
+			<div class="w3-dropdown-hover w3-right">
+	 			<button class="w3-button">Add</button>
+				<div class="w3-dropdown-content w3-bar-block w3-card-4">
+	        		<a href="/NewQuestions" class="w3-bar-item w3-button">Add Question</a>
+					<a href="/NewSurvey" class="w3-bar-item w3-button">Add Survey</a>
+				</div>
+			</div>
+			<a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
+	  </div>
+	</div>
+
+<!-- Page content-->
+	<h1> Choose Questions</h1>
+	{% if questions %}
+		<Form method="POST">
+		{% autoescape false %}
+			{% for q in questions%}
+				<p>
+				<input class = "w3-check" type="checkbox" name="{{q}}">
+				<label>{{q}}</label>
+				</p>
+			{% endfor %}
+			<button class=w3-button" type = "submit" name = "save">Save</button>      	
+      {% endautoescape %}
+      </Form>
+	{%else%}
+		No questions have been submitted
+	{% endif %}
+
+<!-- Page content -->
+</body>
+</html>
