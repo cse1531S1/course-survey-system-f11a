@@ -74,10 +74,13 @@ def newquestions():
     submitted = None;
     if request.method == 'POST':
         question = request.form['q']
-        with open('questionList.csv','a') as csv_out:
-            writer = csv.writer(csv_out)
-            writer.writerow([question]) 
-        submitted = "Question submitted!"
+        if(question == ""):
+            submitted = "Please enter your question into the box!"
+        else:
+            with open('questionList.csv','a') as csv_out:
+                writer = csv.writer(csv_out)
+                writer.writerow([question]) 
+            submitted = "Question submitted!"
     return render_template('newquestions.html', status = submitted)
 
 #NEW SURVEY PAGE
