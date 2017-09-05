@@ -20,6 +20,8 @@ class SurveyPool(object):
 			reader = csv.reader(csv_in)
 			for row in reader:
 				newSurvey = Survey(row[0],row[1])
+				newSurvey.generateSurvey()
+				newSurvey.generateResponses()
 				self.addSurvey(newSurvey)
 
 	def storePool():
@@ -33,7 +35,7 @@ class Survey(object):
 		self._courseName = courseName
 		self._semesterName = semesterName
 		self._questionList = []
-		self._responses = None
+		self._responses = []
 
 	def getCourseName():
 		return self._courseName
