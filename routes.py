@@ -114,6 +114,20 @@ def viewSurveysList():
 	return render_template('viewSurveyList.html')
 	
 	
+@app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
+def survey(course_id):
+    with open('questionList.csv','r') as csv_in:
+        reader = csv.reader(csv_in)
+        question_list = list(reader)
+        questions = [item[0] for item in question_list]
+    if request.method == 'POST':
+        responses = []
+        for question in questions:
+            responses.append(request.form[question])
+            open('responses.txt', 'w').write('\n'.join(responses))
+        return render_template('success.html', course_id=course_id)
+    else:
+        return render_template('survey.html', course_id=course_id, questions = questions)
 	
 	
 
