@@ -24,7 +24,7 @@ class SurveyPool(object):
 
 	def storePool():
 		with open('%s.csv' % self._filename, 'wb') as csv_out:
-			reader = csv.writer(csv_out, delimiter = ',')
+			writer = csv.writer(csv_out, delimiter = ',')
 			for survey in self._listOfSurveys:
 				writer.writerow(survey.getCourseName(), survey.getSemesterName())
 
@@ -41,6 +41,7 @@ class Survey(object):
 		return self._semesterName
 	
 	def addQuestion(newQuestion):
+		self._questionList.append(newQuestion)
 
 	def setQuestions(newQuestions):
 		self._questionList = newQuestions
@@ -49,8 +50,17 @@ class Survey(object):
 		return self._questions;
 
 	def generateSurvey():
+		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'r') as csv_in:
+			reader = csv.reader(csv_in)
+			for row in reader:
+				questionToAdd = Question(row[0])
+				self.addQuestion(questionToAdd)
 
 	def storeSurvey():
+		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'wb') as csv_out:
+			writer = csv.writer(csv_out, delimiter = ',')
+			for question in self._questionList:
+				writer.writerow(question)
 
 
 class Question(object):
