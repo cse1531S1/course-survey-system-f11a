@@ -106,9 +106,12 @@ def questionlist():
 	return render_template('questions.html', questions = stringVersion)
 	
 	
+#List of surveys page
+@app.route('/viewSurveysList')
+def viewSurveysList():
 	
 	
-	
+	return render_template('viewSurveyList.html')
 	
 	
 	
