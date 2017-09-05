@@ -29,7 +29,7 @@
 	<h1>All Current Surveys</h1>
 	<h2>Click a survey to be taken to it</h2>
 	{% for survey in SurveyList %}
-   		<a href="/survey/{{ sem }}/{{ courses[sem] }}" class="w3-bar-item w3-button">{{ sem }} - {{ course }}</a>
+   		<a href="/survey/{{ survey.sem }}/{{ survey.course }}" class="w3-bar-item w3-button">{{ survey.sem }} - {{ survey.course }}</a>
 	{% endfor %}
 		
 </body>
