@@ -29,6 +29,9 @@ class SurveyPool(object):
 			writer = csv.writer(csv_out, delimiter = ',')
 			for survey in self._listOfSurveys:
 				writer.writerow(survey.getCourseName(), survey.getSemesterName())
+		
+	def getSurveyList(self):
+		return self._listOfSurveys
 
 class Survey(object):
 	def __init__(self, courseName, semesterName):
