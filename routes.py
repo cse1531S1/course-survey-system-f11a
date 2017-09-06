@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, question_list, surveyList
+from classes import Survey, Question, Data
 import csv
 
 #LOGIN PAGE
@@ -56,23 +57,35 @@ def newsurvey():
 #SELECT QUESTIONS PAGE  
 @app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
-   
-    #If they've submitted, then for each of these, instantiate a questions object, and a data object
-    if request.method == "POST":
-    	selected_q = []
-        for q in question_list:
-            if request.form.get(q):
-                selected_q.append(q)
-        instance.save_questions(selected_q)
-        return redirect(url_for("questionselected"))
+	#If they've submitted, then for each of these, instantiate a questions object, and a data object
+	if request.method == "POST":
+		emptyList = []
+		#Retrieve the relevant survey; otherwise, create a new one
+		thisSurvey = surveyList.getSurvey(semestername, coursename)
+		if thisSurvey == None:
+			thisSurvey = Survey(coursename, semestername)
+			surveyList.addSurvey(thisSurvey)
+		else:
+			thisSurvey.setQuestions(emptyList)
+			thisSurvey.setResponses(emptyList)
+		#Create and appennd Question and Data objects
+		for q in question_list:
+			if request.form.get(q):
+				newQObj = Question(str(q))
+				newDObj = Data(emptyList)
+				thisSurvey.addQuestion(newQObj)
+				thisSurvey.addResponse(newDObj)
 
+		return redirect(url_for("questionselected"))
 	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
-	elif request.methods == "GET":
+	elif request.method == "GET":
 		question_list = []
 		with open('questionList.csv','r') as csv_in:
 			for row in csv.reader(csv_in):
 				question_list.append(row[0])
 		return render_template('choosequestions.html', questions = question_list)
+
+
 
 #PAGE AFTER SELECTING QUESTIONS
 @app.route('/questionselected', methods=['GET','POST'])
@@ -83,15 +96,11 @@ def questionselected():
         if name == "createanother":
             return redirect(url_for("newsurvey"))
         
-        #change link to Rodney's page of answering survey
-        #if name == "surveylink":
-            #return (redirect(url_for("")
     return render_template('questionselected.html')   
     
 #List of surveys page
 @app.route('/viewSurveysList')
 def viewSurveysList():
-	
 	return render_template('viewSurveyList.html')
 	
 # SURVEY PAGE
@@ -164,30 +173,3 @@ def get_courses(semester):
             if(row != [] and row[1] == semester):
                 courses.append(row[0])
     return courses
-
-# ----------------------------------------------------------------------------------------------------------
-#-----------------------------------Functions for classes -------------------------------------------------
-def get_all_courses():
-    courses = []
-    with open('courses.csv', 'r') as csv_in:
-        reader = csv.reader(csv_in)
-        for row in reader:
-            courses.append(row[1])
-    return courses
-
-#helper function find "COMPXXXX" in "XXXX". return 0 = no object found
-string1 = ""
-string2 = ""
-def findCourseInSem(string1, string2):
-    for course in coursesObj:
-        if course.get_coursename() == string2 and course.get_semname() == string1:
-            return course
-    return 0
-
-#helper function - find "SEM" object. return 0 = no object found.
-string = ""
-def findSemObj(string):
-    for sem in semesters:
-        if sem.get_semname() == string:
-            return sem
-    return 0
