@@ -59,20 +59,20 @@ def courseObject(semestername, coursename):
    
     #If they've submitted, then for each of these, instantiate a questions object, and a data object
     if request.method == "POST":
-    	selected_q = []
+        selected_q = []
         for q in question_list:
             if request.form.get(q):
                 selected_q.append(q)
         instance.save_questions(selected_q)
         return redirect(url_for("questionselected"))
 
-	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
-	elif request.methods == "GET":
-		question_list = []
-		with open('questionList.csv','r') as csv_in:
-			for row in csv.reader(csv_in):
-				question_list.append(row[0])
-		return render_template('choosequestions.html', questions = question_list)
+    #Else, read from the question list into the CSV, and display these onto the screen as checkboxes
+    elif request.methods == "GET":
+        question_list = []
+        with open('questionList.csv','r') as csv_in:
+            for row in csv.reader(csv_in):
+                question_list.append(row[0])
+        return render_template('choosequestions.html', questions = question_list)
 
 #PAGE AFTER SELECTING QUESTIONS
 @app.route('/questionselected', methods=['GET','POST'])
