@@ -1,9 +1,6 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, question_list
+from server import app, question_list, surveyList
 import csv
-
-#https://www.w3schools.com/w3css/w3css_templates.asp
-
 
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
@@ -17,14 +14,10 @@ def login():
 	return render_template('login.html', error=error)
 
 
-
 #ADMIN DASHBOARD
 @app.route('/Dashboard')
 def dashboard():
 	return render_template('dashboard.html')
-
-
-
 
 #NEW QUESTIONS PAGE
 @app.route('/NewQuestions',methods=["GET","POST"])
@@ -41,37 +34,67 @@ def newquestions():
             submitted = "Question submitted!"
     return render_template('newquestions.html', status = submitted)
 
-#NEW SURVEY PAGE
-@app.route('/courseSelection')
-def newsurvey():
-    if True:
-        # open course list csv and add to dictionary
-	    courses_list = get_list_of_courses()
-	    
-	    #get semester list
-	    semesters = get_sems()
-	    
-	    #pass though dictionary and sem list
-    return render_template('courseselection.html', courses = courses_list, semesters = semesters)
-
 #QUESTION LIST PAGE
 @app.route('/QuestionList')
 def questionlist():
-	with open('questionList.csv','r') as csv_in:
-		reader = csv.reader(csv_in)
-		question_list = list(reader)
-		stringVersion = "<br/>".join(item[0] for item in question_list)
-	return render_template('questions.html', questions = stringVersion)
-	
-	
+    with open('questionList.csv','r') as csv_in:
+        reader = csv.reader(csv_in)
+        question_list = list(reader)
+        stringVersion = "<br/>".join(item[0] for item in question_list)
+    return render_template('questions.html', questions = stringVersion)
+
+
+#NEW SURVEY PAGE goes to /addSurvey
+@app.route('/courseSelection') 
+def newsurvey():
+	courses_list = get_list_of_courses()
+	semesters = get_sems()
+
+	#pass though dictionary of courses with semester as keys and sem list as key list
+	return render_template('courseselection.html', courses = courses_list, semesters = semesters)
+
+#SELECT QUESTIONS PAGE  
+@app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
+def courseObject(semestername, coursename):
+   
+    #If they've submitted, then for each of these, instantiate a questions object, and a data object
+    if request.method == "POST":
+    	selected_q = []
+        for q in question_list:
+            if request.form.get(q):
+                selected_q.append(q)
+        instance.save_questions(selected_q)
+        return redirect(url_for("questionselected"))
+
+	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
+	elif request.methods == "GET":
+		question_list = []
+		with open('questionList.csv','r') as csv_in:
+			for row in csv.reader(csv_in):
+				question_list.append(row[0])
+		return render_template('choosequestions.html', questions = question_list)
+
+#PAGE AFTER SELECTING QUESTIONS
+@app.route('/questionselected', methods=['GET','POST'])
+def questionselected():
+    if request.method == "POST":
+        name = request.form["bt"]
+        
+        if name == "createanother":
+            return redirect(url_for("newsurvey"))
+        
+        #change link to Rodney's page of answering survey
+        #if name == "surveylink":
+            #return (redirect(url_for("")
+    return render_template('questionselected.html')   
+    
 #List of surveys page
 @app.route('/viewSurveysList')
 def viewSurveysList():
 	
-	
 	return render_template('viewSurveyList.html')
 	
-	
+# SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
 def survey(course_id):
     with open('questionList.csv','r') as csv_in:
@@ -88,50 +111,8 @@ def survey(course_id):
         return render_template('survey.html', course_id=course_id, questions = questions)
 	
 	
-#SELECT QUESTIONS PAGE  
-@app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
-def courseObject(semestername, coursename):
-    instance = findCourseInSem(semestername, coursename)
-    
-    # if no instance previously made, make new instance
-    if instance == 0:
-        instance = Course(semestername, coursename)
-        coursesObj.append(instance)
-    
-    #local lists
-    question_list = []
-    selected_q = []
-    
-    with open('questionList.csv','r') as csv_in:
-        for row in csv.reader(csv_in):
-            question_list.append(row[0])
-    
-    #read selected checkbox
-    if request.method == "POST":
-        for q in question_list:
-            if request.form.get(q):
-                selected_q.append(q)
-        instance.save_questions(selected_q)
-        print("Saved:",instance.get_semname(), instance.get_coursename(), instance.get_questions())
-        
-        return redirect(url_for("questionselected"))
-    
-    return render_template('choosequestions.html', questions = question_list)
-    
-    
-#PAGE AFTER SELECTING QUESTIONS
-@app.route('/questionselected', methods=['GET','POST'])
-def questionselected():
-    if request.method == "POST":
-        name = request.form["bt"]
-        
-        if name == "createanother":
-            return redirect(url_for("newsurvey"))
-        
-        #change link to Rodney's page of answering survey
-        #if name == "surveylink":
-            #return (redirect(url_for("")
-    return render_template('questionselected.html')
+
+
     
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
@@ -155,8 +136,6 @@ def get_list_of_courses():
         courses[sem] = get_courses(sem)
     return courses
     
-
-
 
 def get_sems():
     # This function reads from the courses csv and gets an ordered list of unique semesters
