@@ -77,6 +77,7 @@ def courseObject(semestername, coursename):
 				thisSurvey.addQuestion(newQObj)
 				thisSurvey.addResponse(newDObj)
 
+		surveyList.storePool()
 		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
 	
 	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
@@ -109,23 +110,18 @@ def viewSurveysList():
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
 def survey(semestername, coursename):
-    with open('questionList.csv','r') as csv_in:
-        reader = csv.reader(csv_in)
-        question_list = list(reader)
-        questions = [item[0] for item in question_list]
-    if request.method == 'POST':
-        responses = []
-        for question in questions:
-            responses.append(request.form[question])
-            open('responses.txt', 'w').write('\n'.join(responses))
-        return render_template('success.html', course_id=course_id)
-    else:
-        return render_template('survey.html', course_id=course_id, questions = questions)
+	#Search through the surveyPool object
+	#Find the right survey object
+	rightSurvey = surveyList.getSurvey(semestername, coursename)
+	if request.method == 'POST':
+		for question in questions:
+			rightSurvey.addResponse(question)
+		return render_template('success.html')
+	else:
+		listToSend = rightSurvey.getQuestions()
+		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
 	
 	
-
-
-    
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):
