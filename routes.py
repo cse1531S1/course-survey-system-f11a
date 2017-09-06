@@ -60,6 +60,7 @@ def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
 		emptyList = []
+		global question_list
 		#Retrieve the relevant survey; otherwise, create a new one
 		thisSurvey = surveyList.getSurvey(semestername, coursename)
 		if thisSurvey == None:
@@ -76,7 +77,8 @@ def courseObject(semestername, coursename):
 				thisSurvey.addQuestion(newQObj)
 				thisSurvey.addResponse(newDObj)
 
-		return redirect(url_for("questionselected"))
+		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
+	
 	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
 	elif request.method == "GET":
 		question_list = []
@@ -90,13 +92,14 @@ def courseObject(semestername, coursename):
 #PAGE AFTER SELECTING QUESTIONS
 @app.route('/questionselected', methods=['GET','POST'])
 def questionselected():
-    if request.method == "POST":
-        name = request.form["bt"]
-        
-        if name == "createanother":
-            return redirect(url_for("newsurvey"))
-        
-    return render_template('questionselected.html')   
+	if request.method == "POST":
+		name = request.form["bt"]
+		if name == "createanother":
+			return redirect(url_for("newsurvey"))
+	else:
+		semesterName = request.args['semesterName']
+		courseName = request.args['courseName']
+		return render_template('questionselected.html', sem = semesterName, course = courseName)   
     
 #List of surveys page
 @app.route('/viewSurveysList')
@@ -105,7 +108,7 @@ def viewSurveysList():
 	
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
-def survey(course_id):
+def survey(semestername, coursename):
     with open('questionList.csv','r') as csv_in:
         reader = csv.reader(csv_in)
         question_list = list(reader)
