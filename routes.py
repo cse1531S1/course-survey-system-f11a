@@ -105,7 +105,7 @@ def questionselected():
 @app.route('/viewSurveysList')
 def viewSurveysList():
 	# This function gives the webpage a list of surveys via he SurveyPool object
-	return render_template('viewSurveyList.html', SurveyList = SurveyPool.getSurveyList())
+	return render_template('viewSurveyList.html', SurveyList = surveyList.getSurveyList())
 
 	
 # SURVEY PAGE
