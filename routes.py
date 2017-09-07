@@ -73,9 +73,7 @@ def courseObject(semestername, coursename):
 		for q in question_list:
 			if request.form.get(q):
 				newQObj = Question(str(q))
-				newDObj = Data(emptyList)
 				thisSurvey.addQuestion(newQObj)
-				thisSurvey.addResponse(newDObj)
 
 		surveyList.storePool()
 		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
@@ -110,18 +108,26 @@ def viewSurveysList():
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
 def survey(semestername, coursename):
-	# Problem: how do we get the
-	#
+
 	rightSurvey = surveyList.getSurvey(semestername, coursename)
 	if request.method == 'POST':
+		answerList = []
 		for question in rightSurvey.getQuestions():
-			if request.form.get(question):
-				rightSurvey.addResponse(request.form.get(question))
-		print(rightSurvey.getResponses())
+			#print("What we're trying to get is: ")
+			#print(question.getQuestionName())
+			#print(request.form.get(question.getQuestionName()))
+			#For some reason, request.form.get(question) is empty
+			if request.form.get(question.getQuestionName()):
+				answerList.append(request.form.get(question.getQuestionName()))
+		newDataObj = Data(answerList)
+		rightSurvey.addResponse(newDataObj)
 		rightSurvey.storeResponses()
 		return redirect(url_for("completed"))
 	else:
-		listToSend = rightSurvey.getQuestions()
+		listRecieved = rightSurvey.getQuestions()
+		listToSend = []
+		for item in listRecieved:
+			listToSend.append(item.getQuestionName())
 		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
 	
 @app.route ('/completed', methods = ["GET","POST"])

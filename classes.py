@@ -64,7 +64,10 @@ class Survey(object):
 		return self._questionList;
 
 	def addResponse(self, newResponse):
-		self._responses.append(newResponse)
+		if(newResponse.getData() != []):
+			self._responses.append(newResponse)
+		else:
+			print("Nice try lol")
 
 	def setResponses(self, newResponses):
 		self._responses = newResponses
@@ -97,12 +100,28 @@ class Survey(object):
 	def storeResponses(self):
 		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
 			writer = csv.writer(csv_out)
+			#TotalList is our list of all responses
 			totalList = self.getResponses()
-			if totalList:
-				for responseList in totalList:
-					writer.writerow([responseList.getData()])
+			#For every data object in the list
+			for response in totalList:
+				newStr = response.getData()
+				print("The response data is:")
+				print(response.getData())
+				#We're going to call the getData function
+				writer.writerow(newStr)
 
-
+# For a given survey, we store the data like this:
+# 1,2,3,1
+# 2,2,4,5
+# etc.
+# Hence, data should be a list of lists
+# Each data object contains a list?
+# Yes
+# Well, each obj
+# So:
+# Each survey object contains a list of Data objects
+# Each data object contains a list of responses
+# 
 class Question(object):
 	def __init__(self, questionString):
 		self._questionString = questionString
