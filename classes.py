@@ -39,14 +39,14 @@ class SurveyPool(object):
 			writer = csv.writer(csv_out)
 			for survey in self._listOfSurveys:
 				writer.writerow(survey.getCourseName(), survey.getSemesterName())
-        toWrite = []
+				toWrite = []
 				toWrite.append(survey.getCourseName())
 				toWrite.append(survey.getSemesterName())
 				writer.writerow(toWrite)
 				survey.storeSurvey()
 				survey.storeResponses()
 	
-  def getSurveyList(self):
+	def getSurveyList(self):
 		return self._listOfSurveys
   
 class Survey(object):
