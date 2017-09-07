@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html>
+<title>New Questions</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style> body {font-family: "Lato", sans-serif} </style>
+
+<body>
+
+  <!-- Question List -->
+  <h1>Questions</h1>
+  {% if questions %}
+    {% autoescape false %}
+      <form action="/survey/{{ sem }}/{{ course }}" method="POST">
+      {% for q in questions %}
+        <h3>{{ q }}</h3><br>
+        <input type="radio" name="{{ q }}" value="1"> 1
+        <input type="radio" name="{{ q }}" value="2"> 2
+        <input type="radio" name="{{ q }}" value="3"> 3
+        <input type="radio" name="{{ q }}" value="4"> 4
+        <input type="radio" name="{{ q }}" value="5"> 5
+        <br>
+      {% endfor %}
+      <input type="submit" value="Submit">
+      </form>
+    {% endautoescape %}
+  {%else%}
+    No questions have been submitted
+  {% endif %}
+
+<!-- Page content -->
+</body>
+</html>

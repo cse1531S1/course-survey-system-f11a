@@ -1,5 +1,6 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, question_list, surveyList
+from classes import Survey, Question, Data
 import csv
 
 #LOGIN PAGE
@@ -39,8 +40,8 @@ def newquestions():
 def questionlist():
     with open('questionList.csv','r') as csv_in:
         reader = csv.reader(csv_in)
-        question_list = list(reader)
-        stringVersion = "<br/>".join(item[0] for item in question_list)
+        questions_list = list(reader)
+        stringVersion = "<br/>".join(item[0] for item in questions_list)
     return render_template('questions.html', questions = stringVersion)
 
 
@@ -56,64 +57,85 @@ def newsurvey():
 #SELECT QUESTIONS PAGE  
 @app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
-   
-    #If they've submitted, then for each of these, instantiate a questions object, and a data object
-    if request.method == "POST":
-        selected_q = []
-        for q in question_list:
-            if request.form.get(q):
-                selected_q.append(q)
-        instance.save_questions(selected_q)
-        return redirect(url_for("questionselected"))
+	#If they've submitted, then for each of these, instantiate a questions object, and a data object
+	if request.method == "POST":
+		emptyList = []
+		global question_list
+		#Retrieve the relevant survey; otherwise, create a new one
+		thisSurvey = surveyList.getSurvey(semestername, coursename)
+		if thisSurvey == None:
+			thisSurvey = Survey(coursename, semestername)
+			surveyList.addSurvey(thisSurvey)
+		else:
+			surveyList.deleteSurvey(semestername, coursename)
+			thisSurvey.resetSurvey()
+			thisSurvey = Survey(coursename, semestername)
+			surveyList.addSurvey(thisSurvey)
+		#Create and appennd Question and Data objects
+		for q in question_list:
+			if request.form.get(q):
+				newQObj = Question(str(q))
+				thisSurvey.addQuestion(newQObj)
 
-    #Else, read from the question list into the CSV, and display these onto the screen as checkboxes
-    elif request.methods == "GET":
-        question_list = []
-        with open('questionList.csv','r') as csv_in:
-            for row in csv.reader(csv_in):
-                question_list.append(row[0])
-        return render_template('choosequestions.html', questions = question_list)
+		surveyList.storePool()
+		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
+	
+	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
+	elif request.method == "GET":
+		question_list = []
+		with open('questionList.csv','r') as csv_in:
+			for row in csv.reader(csv_in):
+				question_list.append(row[0])
+		return render_template('choosequestions.html', questions = question_list)
+
 
 #PAGE AFTER SELECTING QUESTIONS
 @app.route('/questionselected', methods=['GET','POST'])
 def questionselected():
-    if request.method == "POST":
-        name = request.form["bt"]
-        
-        if name == "createanother":
-            return redirect(url_for("newsurvey"))
-        
-        #change link to Rodney's page of answering survey
-        #if name == "surveylink":
-            #return (redirect(url_for("")
-    return render_template('questionselected.html')   
+	if request.method == "POST":
+		name = request.form["bt"]
+		if name == "createanother":
+			return redirect(url_for("newsurvey"))
+	else:
+		semesterName = request.args['semesterName']
+		courseName = request.args['courseName']
+		return render_template('questionselected.html', sem = semesterName, course = courseName)   
     
 #List of surveys page
 @app.route('/viewSurveysList')
 def viewSurveysList():
 	# This function gives the webpage a list of surveys via he SurveyPool object
 	return render_template('viewSurveyList.html', SurveyList = SurveyPool.getSurveyList())
+
 	
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
-def survey(course_id):
-    with open('questionList.csv','r') as csv_in:
-        reader = csv.reader(csv_in)
-        question_list = list(reader)
-        questions = [item[0] for item in question_list]
-    if request.method == 'POST':
-        responses = []
-        for question in questions:
-            responses.append(request.form[question])
-            open('responses.txt', 'w').write('\n'.join(responses))
-        return render_template('success.html', course_id=course_id)
-    else:
-        return render_template('survey.html', course_id=course_id, questions = questions)
-	
-	
+def survey(semestername, coursename):
 
-
-    
+	rightSurvey = surveyList.getSurvey(semestername, coursename)
+	if request.method == 'POST':
+		answerList = []
+		for question in rightSurvey.getQuestions():
+			#print("What we're trying to get is: ")
+			#print(question.getQuestionName())
+			#print(request.form.get(question.getQuestionName()))
+			#For some reason, request.form.get(question) is empty
+			if request.form.get(question.getQuestionName()):
+				answerList.append(request.form.get(question.getQuestionName()))
+		newDataObj = Data(answerList)
+		rightSurvey.addResponse(newDataObj)
+		rightSurvey.storeResponses()
+		return redirect(url_for("completed"))
+	else:
+		listRecieved = rightSurvey.getQuestions()
+		listToSend = []
+		for item in listRecieved:
+			listToSend.append(item.getQuestionName())
+		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
+	
+@app.route ('/completed', methods = ["GET","POST"])
+def completed():
+	return render_template('success.html')
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):
@@ -164,30 +186,3 @@ def get_courses(semester):
             if(row != [] and row[1] == semester):
                 courses.append(row[0])
     return courses
-
-# ----------------------------------------------------------------------------------------------------------
-#-----------------------------------Functions for classes -------------------------------------------------
-def get_all_courses():
-    courses = []
-    with open('courses.csv', 'r') as csv_in:
-        reader = csv.reader(csv_in)
-        for row in reader:
-            courses.append(row[1])
-    return courses
-
-#helper function find "COMPXXXX" in "XXXX". return 0 = no object found
-string1 = ""
-string2 = ""
-def findCourseInSem(string1, string2):
-    for course in coursesObj:
-        if course.get_coursename() == string2 and course.get_semname() == string1:
-            return course
-    return 0
-
-#helper function - find "SEM" object. return 0 = no object found.
-string = ""
-def findSemObj(string):
-    for sem in semesters:
-        if sem.get_semname() == string:
-            return sem
-    return 0
