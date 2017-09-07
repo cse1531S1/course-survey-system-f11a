@@ -65,19 +65,21 @@ def courseObject(semestername, coursename):
 		thisSurvey = surveyList.getSurvey(semestername, coursename)
 		if thisSurvey == None:
 			thisSurvey = Survey(coursename, semestername)
-			surveyList.addSurvey(thisSurvey)
 		else:
 			surveyList.deleteSurvey(semestername, coursename)
 			thisSurvey.resetSurvey()
 			thisSurvey = Survey(coursename, semestername)
-			surveyList.addSurvey(thisSurvey)
+
+		surveyList.addSurvey(thisSurvey)
+		surveyList.saveSurvey(thisSurvey)
+
 		#Create and appennd Question and Data objects
 		for q in question_list:
 			if request.form.get(q):
 				newQObj = Question(str(q))
 				thisSurvey.addQuestion(newQObj)
 
-		surveyList.storePool()
+		thisSurvey.storeSurvey()
 		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
 	
 	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
@@ -124,7 +126,7 @@ def survey(semestername, coursename):
 				answerList.append(request.form.get(question.getQuestionName()))
 		newDataObj = Data(answerList)
 		rightSurvey.addResponse(newDataObj)
-		rightSurvey.storeResponses()
+		rightSurvey.storeResponse(newDataObj)
 		return redirect(url_for("completed"))
 	else:
 		listRecieved = rightSurvey.getQuestions()

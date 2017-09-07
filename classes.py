@@ -44,10 +44,20 @@ class SurveyPool(object):
 				writer.writerow(toWrite)
 				survey.storeSurvey()
 				survey.storeResponses()
-	
+
+	def saveSurvey(self, singularSurvey):
+		with open('%s.csv' % self._filename, 'a') as csv_out:
+			writer = csv.writer(csv_out)
+			toWrite = []
+			toWrite.append(singularSurvey.getCourseName())
+			toWrite.append(singularSurvey.getSemesterName())
+			writer.writerow(toWrite)
+
 	def getSurveyList(self):
 		return self._listOfSurveys
   
+
+
 class Survey(object):
 	def __init__(self, courseName, semesterName):
 		self._courseName = courseName
@@ -60,7 +70,7 @@ class Survey(object):
 
 	def getSemesterName(self):
 		return self._semesterName
-	
+
 	def addQuestion(self, newQuestion):
 		if(type(newQuestion) == Question):
 			self._questionList.append(newQuestion)
@@ -78,8 +88,6 @@ class Survey(object):
 	def addResponse(self, newResponse):
 		if(newResponse.getData() != []):
 			self._responses.append(newResponse)
-		else:
-			print("Nice try lol")
 
 	def setResponses(self, newResponses):
 		self._responses = newResponses
@@ -121,6 +129,13 @@ class Survey(object):
 				print(response.getData())
 				#We're going to call the getData function
 				writer.writerow(newStr)
+
+	def storeResponse(self, singularResponse):
+		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
+			writer = csv.writer(csv_out)
+			writer.writerow(singularResponse.getData())
+
+
 	def resetSurvey(self):
 		os.remove('%s%sA.csv' % (self._semesterName, self._courseName))
 		os.remove('%s%sQ.csv' % (self._semesterName, self._courseName))
