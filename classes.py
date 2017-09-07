@@ -123,18 +123,7 @@ class Survey(object):
 		os.remove('%s%sQ.csv' % (self._semesterName, self._courseName))
 		self.setQuestions([])
 		self.setResponses([])
-# For a given survey, we store the data like this:
-# 1,2,3,1
-# 2,2,4,5
-# etc.
-# Hence, data should be a list of lists
-# Each data object contains a list?
-# Yes
-# Well, each obj
-# So:
-# Each survey object contains a list of Data objects
-# Each data object contains a list of responses
-# 
+
 class Question(object):
 	def __init__(self, questionString):
 		self._questionString = questionString
