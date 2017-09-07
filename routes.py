@@ -67,8 +67,10 @@ def courseObject(semestername, coursename):
 			thisSurvey = Survey(coursename, semestername)
 			surveyList.addSurvey(thisSurvey)
 		else:
-			thisSurvey.setQuestions(emptyList)
-			thisSurvey.setResponses(emptyList)
+			surveyList.deleteSurvey(semestername, coursename)
+			thisSurvey.resetSurvey()
+			thisSurvey = Survey(coursename, semestername)
+			surveyList.addSurvey(thisSurvey)
 		#Create and appennd Question and Data objects
 		for q in question_list:
 			if request.form.get(q):

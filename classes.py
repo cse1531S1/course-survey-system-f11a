@@ -1,5 +1,5 @@
 import csv
-
+import os
 class SurveyPool(object):
 	def __init__(self,filename):
 		self._filename = filename
@@ -14,6 +14,13 @@ class SurveyPool(object):
 
 	def addSurvey(self, newSurvey):
 		self._listOfSurveys.append(newSurvey)
+
+	def deleteSurvey(self, semester, course):
+		i = 0
+		for survey in self._listOfSurveys:
+			if survey.getCourseName() == course and survey.getSemesterName() == semester:
+				self._listOfSurveys.pop(i)
+			i += 1
 
 	def generatePool(self):
 		with open('%s.csv' % self._filename, 'r') as csv_in:
@@ -85,7 +92,7 @@ class Survey(object):
 	def storeSurvey(self):
 		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
 			writer = csv.writer(csv_out)
-			self._questionList[:] = [x for x in self._questionList if type(x) == Question]
+			#self._questionList[:] = [x for x in self._questionList if type(x) == Question]
 
 			for question in self._questionList:
 				writer.writerow([question.getQuestionName()])
@@ -109,7 +116,11 @@ class Survey(object):
 				print(response.getData())
 				#We're going to call the getData function
 				writer.writerow(newStr)
-
+	def resetSurvey(self):
+		os.remove('%s%sA.csv' % (self._semesterName, self._courseName))
+		os.remove('%s%sQ.csv' % (self._semesterName, self._courseName))
+		self.setQuestions([])
+		self.setResponses([])
 # For a given survey, we store the data like this:
 # 1,2,3,1
 # 2,2,4,5
