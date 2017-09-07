@@ -21,6 +21,8 @@ class SurveyPool(object):
 			if survey.getCourseName() == course and survey.getSemesterName() == semester:
 				self._listOfSurveys.pop(i)
 			i += 1
+		os.remove('%s.csv' % self._filename)
+		self.storePool()
 
 	def generatePool(self):
 		with open('%s.csv' % self._filename, 'r') as csv_in:
