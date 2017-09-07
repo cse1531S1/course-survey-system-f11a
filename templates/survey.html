@@ -28,18 +28,18 @@
   <h1>Questions</h1>
   {% if questions %}
     {% autoescape false %}
-      <form <form action="/survey/{{ course_id }}" method="POST">
-      {% for question in questions %}
-        <h3>{{ question }}</h3><br>
-        <input type="radio" name="{{ question }}" value="1"> 1
-        <input type="radio" name="{{ question }}" value="2"> 2
-        <input type="radio" name="{{ question }}" value="3" checked> 3
-        <input type="radio" name="{{ question }}" value="4"> 4
-        <input type="radio" name="{{ question }}" value="5"> 5
+      <form action="/survey/{{ sem }}/{{ course }}" method="POST">
+      {% for q in questions %}
+        <h3>{{ q }}</h3><br>
+        <input type="radio" name="{{ q }}" value="1"> 1
+        <input type="radio" name="{{ q }}" value="2"> 2
+        <input type="radio" name="{{ q }}" value="3"> 3
+        <input type="radio" name="{{ q }}" value="4"> 4
+        <input type="radio" name="{{ q }}" value="5"> 5
         <br>
       {% endfor %}
       <input type="submit" value="Submit">
-      </form>>
+      </form>
     {% endautoescape %}
   {%else%}
     No questions have been submitted

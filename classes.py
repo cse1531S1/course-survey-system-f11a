@@ -19,18 +19,18 @@ class SurveyPool(object):
 		with open('%s.csv' % self._filename, 'r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
-				newSurvey = Survey(row[0],row[1])
-				newSurvey.generateSurvey()
-				newSurvey.generateResponses()
-				self.addSurvey(newSurvey)
+				if row != "":
+					newSurvey = Survey(row[0],row[1])
+					newSurvey.generateSurvey()
+					newSurvey.generateResponses()
+					self.addSurvey(newSurvey)
 
 	def storePool(self):
 		with open('%s.csv' % self._filename, 'a') as csv_out:
-			writer = csv.writer(csv_out, delimiter = ',')
+			writer = csv.writer(csv_out)
 			for survey in self._listOfSurveys:
 				toWrite = []
 				toWrite.append(survey.getCourseName())
-				toWrite.append(",")
 				toWrite.append(survey.getSemesterName())
 				writer.writerow(toWrite)
 				survey.storeSurvey()
@@ -50,13 +50,18 @@ class Survey(object):
 		return self._semesterName
 	
 	def addQuestion(self, newQuestion):
-		self._questionList.append(newQuestion)
+		if(type(newQuestion) == Question):
+			self._questionList.append(newQuestion)
+			print("Question added")
+		else:
+			print("Failure")
+			print(type(newQuestion))
 
 	def setQuestions(self, newQuestions):
 		self._questionList = newQuestions
 
 	def getQuestions(self):
-		return self._questions;
+		return self._questionList;
 
 	def addResponse(self, newResponse):
 		self._responses.append(newResponse)
@@ -76,9 +81,11 @@ class Survey(object):
 
 	def storeSurvey(self):
 		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
-			writer = csv.writer(csv_out, delimiter = ',')
+			writer = csv.writer(csv_out)
+			self._questionList[:] = [x for x in self._questionList if type(x) == Question]
+
 			for question in self._questionList:
-				writer.writerow(question)
+				writer.writerow([question.getQuestionName()])
 
 	def generateResponses(self):
 		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'r') as csv_in:
@@ -89,10 +96,11 @@ class Survey(object):
 
 	def storeResponses(self):
 		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
-			writer = csv.writer(csv_out, delimiter = ',')
-			totalList = getResponses()
-			for responseList in totalList:
-				writer.writerow(responseList.getData())
+			writer = csv.writer(csv_out)
+			totalList = self.getResponses()
+			if totalList:
+				for responseList in totalList:
+					writer.writerow([responseList.getData()])
 
 
 class Question(object):

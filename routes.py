@@ -40,8 +40,8 @@ def newquestions():
 def questionlist():
     with open('questionList.csv','r') as csv_in:
         reader = csv.reader(csv_in)
-        question_list = list(reader)
-        stringVersion = "<br/>".join(item[0] for item in question_list)
+        questions_list = list(reader)
+        stringVersion = "<br/>".join(item[0] for item in questions_list)
     return render_template('questions.html', questions = stringVersion)
 
 
@@ -110,18 +110,23 @@ def viewSurveysList():
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
 def survey(semestername, coursename):
-	#Search through the surveyPool object
-	#Find the right survey object
+	# Problem: how do we get the
+	#
 	rightSurvey = surveyList.getSurvey(semestername, coursename)
 	if request.method == 'POST':
-		for question in questions:
-			rightSurvey.addResponse(question)
-		return render_template('success.html')
+		for question in rightSurvey.getQuestions():
+			if request.form.get(question):
+				rightSurvey.addResponse(request.form.get(question))
+		print(rightSurvey.getResponses())
+		rightSurvey.storeResponses()
+		return redirect(url_for("completed"))
 	else:
 		listToSend = rightSurvey.getQuestions()
 		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
 	
-	
+@app.route ('/completed', methods = ["GET","POST"])
+def completed():
+	return render_template('success.html')
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):
