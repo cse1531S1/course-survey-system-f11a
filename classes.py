@@ -38,13 +38,17 @@ class SurveyPool(object):
 		with open('%s.csv' % self._filename, 'a') as csv_out:
 			writer = csv.writer(csv_out)
 			for survey in self._listOfSurveys:
-				toWrite = []
+				writer.writerow(survey.getCourseName(), survey.getSemesterName())
+        toWrite = []
 				toWrite.append(survey.getCourseName())
 				toWrite.append(survey.getSemesterName())
 				writer.writerow(toWrite)
 				survey.storeSurvey()
 				survey.storeResponses()
-
+	
+  def getSurveyList(self):
+		return self._listOfSurveys
+  
 class Survey(object):
 	def __init__(self, courseName, semesterName):
 		self._courseName = courseName

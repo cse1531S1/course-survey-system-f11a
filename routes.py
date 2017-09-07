@@ -89,7 +89,6 @@ def courseObject(semestername, coursename):
 		return render_template('choosequestions.html', questions = question_list)
 
 
-
 #PAGE AFTER SELECTING QUESTIONS
 @app.route('/questionselected', methods=['GET','POST'])
 def questionselected():
@@ -105,7 +104,9 @@ def questionselected():
 #List of surveys page
 @app.route('/viewSurveysList')
 def viewSurveysList():
-	return render_template('viewSurveyList.html')
+	# This function gives the webpage a list of surveys via he SurveyPool object
+	return render_template('viewSurveyList.html', SurveyList = SurveyPool.getSurveyList())
+
 	
 # SURVEY PAGE
 @app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
