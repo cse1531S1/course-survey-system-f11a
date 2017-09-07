@@ -38,7 +38,6 @@ class SurveyPool(object):
 		with open('%s.csv' % self._filename, 'a') as csv_out:
 			writer = csv.writer(csv_out)
 			for survey in self._listOfSurveys:
-				writer.writerow(survey.getCourseName(), survey.getSemesterName())
 				toWrite = []
 				toWrite.append(survey.getCourseName())
 				toWrite.append(survey.getSemesterName())
