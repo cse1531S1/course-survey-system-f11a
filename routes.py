@@ -65,13 +65,14 @@ def courseObject(semestername, coursename):
 		thisSurvey = surveyList.getSurvey(semestername, coursename)
 		if thisSurvey == None:
 			thisSurvey = Survey(coursename, semestername)
+			surveyList.addSurvey(thisSurvey)
+			surveyList.saveSurvey(thisSurvey)
 		else:
 			surveyList.deleteSurvey(semestername, coursename)
 			thisSurvey.resetSurvey()
 			thisSurvey = Survey(coursename, semestername)
-
-		surveyList.addSurvey(thisSurvey)
-		surveyList.saveSurvey(thisSurvey)
+			surveyList.addSurvey(thisSurvey)
+			surveyList.saveSurvey(thisSurvey)
 
 		#Create and appennd Question and Data objects
 		for q in question_list:
