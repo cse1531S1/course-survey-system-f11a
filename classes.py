@@ -50,13 +50,11 @@ class User():
 	def setClosedSurveys(newClosedSurveys)
 		self._closedSurveys = newClosedSurveys
 
-#How do we know on startup what surveys are there?
-#We need a list
 class SurveyPool(Object):
 	def __init__(self, dbName):
 		self._dbName = dbName
 		self._surveys = []
-
+		self._idCounter = 0
 	def getSurvey(surveyID):
 		retVal = None
 		for survey in self._surveys:
@@ -81,6 +79,11 @@ class SurveyPool(Object):
 	def getSurveyList(self):
 		return self._surveys
 
+	def getIDCounter():
+		retVal = self._idCounter
+		self._idCounter++
+		return retVal
+
 class QuestionPool(Object):
 	def __init__(self, dbName):
 		self._dbName = dbName
@@ -102,6 +105,9 @@ class QuestionPool(Object):
 		#PENDING DATABASE CONFIG
 
 	def storePool(self):
+		#PENDING DATABASE CONFIG
+
+	def clearPool(self):
 		#PENDING DATABASE CONFIG
 
 	def getQuestionList():
@@ -130,18 +136,96 @@ class ResponsePool(Object):
 	def storePool(self):
 		#PENDING DATABASE CONFIG
 
+	def clearPool(self):
+		#PENDING DATABASE CONFIG
+
 	def getResponseList():
 		return self._responses
 
 class Survey(Object):
-	def __init__(self):
+	def __init__(self, coursename, uniqueID):
+		self._coursename = coursename
+		self._uniqueID = uniqueID
+		self._questionPool = QuestionPool("InitData.db")
+		self._responsePool = ResponsePool("")#TBD
+	
+	def getCourseName(self):
+		return self._coursename
+
+	def addQuestion(self, q):
+		self._questionPool.addQuestion(q)
+	
+	def setQuestions(self, newQuestions):
+		self._questionPool.setQuestions(newQuestions)
+
+	def getQuestions(self):
+		return self._questionPool.getQuestions();
+
+	def addResponse(self, newResponse):
+		self._responsePool.addResponse(newResponse)
+
+	def setResponses(self, newResponses):
+		self._responsePool.setResponses(newResponses)
+
+	def getResponses(self):
+		return self._responsePool.getResponses()
+
+	def generateSurvey(self):
+		#TBD
+
+	def storeSurvey(self):
+		#TBD
+
+	def generateResponses(self):
+		self._responsePool.generatePool()
+
+	def storeResponses(self):
+		self._responsePool.storePool()
+
+	def storeResponse(self, singularResponse):
+		#TBD
+
+	def storeQuestion(self, singularQuestion):
+		#TBD
+
+	def resetSurvey(self):
+		self._questionPool.clearPool()
+		self._responsePool.clearPool()
 
 class Question(Object):
-	def __init__(self):
+	def __init__(self, questionID, qString, answerType, isMandatory):
+		self._questionID = questionID
+		self._question = qString
+		self._answerType = answerType
+		self._isMandatory = isMandatory
 
-class Data(Object):
-	def __init__(self):
+	def getQuestionID():
+		return self._questionID
 
+	def getQuestionString():
+		return self._question
+
+	def getAswerType():
+		return self._answerType
+
+	def getIsMandatory():
+		return self._isMandatory
+
+class Response(Object):
+	def __init__(self, responses):
+		self._responses = responses
+
+	def getResponse():
+		return self._responses
+
+	def setResponse(newResponseList):
+		self._responses = newResponseList
+
+	def addResponse(newResponse):
+		self._responses.append(newResponse)
+
+
+#FOR TOMORROW
 class FileWriter(Object):
 	def __init__(self):
 
