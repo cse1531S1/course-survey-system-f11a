@@ -166,3 +166,18 @@ class Data(object):
 
 	def addData(self, responseToAdd):
 		self._responses.append(responseToAdd)
+
+def fileWriter(object):
+	def __init__(self,response)
+
+#What sort of stuff do I need to do?
+# Read from CSV files
+# Write to database
+# Read from databse
+
+
+# So we have a controller that has methods for both the UserData.db and the Surveys.db
+# So we have a UserDataModel and a SurveyModel class
+# The view is what's done by Mandar
+
+# So, knowing this, what essential
