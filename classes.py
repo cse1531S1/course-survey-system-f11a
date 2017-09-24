@@ -1,5 +1,6 @@
 class User():
-	def __init__(self, newID, permLevel):
+	def __init__(self, newID, permLevel, DBName):
+		self._dbName = DBName
 		self._id = newID
 		self._permLevel = permLevel
 		self._courses = []
@@ -49,12 +50,61 @@ class User():
 	def setClosedSurveys(newClosedSurveys)
 		self._closedSurveys = newClosedSurveys
 
-
+#How do we know on startup what surveys are there?
+#We need a list
 class SurveyPool(Object):
-	def __init__(self):
+	def __init__(self, dbName):
+		self._dbName = dbName
+		self._surveys = []
+
+	def getSurvey(surveyID):
+		retVal = None
+		for survey in self._surveys:
+			if(survey.getSurveyID() == surveyID):
+				retVal = survey
+		return retVal
+
+	def addSurvey(survey):
+		self._surveys.append(survey)
+
+	def deleteSurvey(surveyID):
+		for survey in self._surveys:
+			if(survey.getSurveyID() == surveyID):
+				self._surveys.remove(survey)
+
+	def generatePool():
+		#PENDING DATABASE CONFIG
+
+	def storePool():
+		#PENDING DATABASE CONFIG	
+
+	def getSurveyList(self):
+		return self._surveys
 
 class QuestionPool(Object):
-	def __init__(self):
+	def __init__(self, dbName):
+		self._dbName = dbName
+		self._questions = []
+
+	def getQuestion(questionID):
+		retVal = None
+		for question in self._questions:
+			if(question.getQuestionID() == questionID):
+				retVal = question
+		return retVal
+
+	def deleteQuestion(questionID):
+		for question in self._questions:
+			if(question.getQuestionID() == questionID):
+				self._questions.remove(question)
+
+	def generatePool(self):
+		#PENDING DATABASE CONFIG
+	def storePool(self):
+		#PENDING DATABASE CONFIG
+
+	def getQuestionList():
+		return self._questions
 
 class DataPool(Object):
 	def __init__(self):
