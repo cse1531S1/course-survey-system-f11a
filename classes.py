@@ -100,14 +100,38 @@ class QuestionPool(Object):
 
 	def generatePool(self):
 		#PENDING DATABASE CONFIG
+
 	def storePool(self):
 		#PENDING DATABASE CONFIG
 
 	def getQuestionList():
 		return self._questions
 
-class DataPool(Object):
-	def __init__(self):
+class ResponsePool(Object):
+	def __init__(self, dbName):
+		self._dbName = dbName
+		self._responses = []
+
+	def getResponse(responseID):
+		retVal = None
+		for resp in self._responses:
+			if(resp.getResponseID() == responseID):
+				retVal = resp
+		return retVal
+
+	def deleteResponse(responseID):
+		for resp in self._responses:
+			if(resp.getResponseID() == responseID):
+				self._responses.remove(resp)
+
+	def generatePool(self):
+		#PENDING DATABASE CONFIG
+		
+	def storePool(self):
+		#PENDING DATABASE CONFIG
+
+	def getResponseList():
+		return self._responses
 
 class Survey(Object):
 	def __init__(self):
