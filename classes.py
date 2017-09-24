@@ -226,11 +226,30 @@ class Response(Object):
 
 
 #FOR TOMORROW
-class FileWriter(Object):
-	def __init__(self):
+class SQLWriter(Object):
+	def _dbselect(self, query, dbName):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor() #Basically our file handle lol
+		rows = cursorObj.execute(query) #Add the query to the command queue, get response
+		connection.commit() #Execute the command queue
+		results = [] 
+		for row in rows: #For every tuple we've beenr eturned
+			results.append(row) #Append this to our list of tuples
+		cursorObj.close() #Close cursor (like fclose)
+		return results #We're done
 
-class SQLWriter(FileWriter):
-	def __init__(self):
+	def _dbinsert(self, query, dbName):
+		connection = sqlite3.conect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
 
 class CSVWriter(FileWriter)
-	def __init__(self):
+	def readFromCSV(filename):
+		retVal = []
+		with open('%s' % (filename) , 'r') as csv_in:
+			reader = csv.reader(csv_in)
+			for row in reader:
+				retVal.append(row)
+		return retVal
