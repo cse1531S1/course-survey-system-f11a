@@ -1,183 +1,78 @@
-import csv
-import os
-class SurveyPool(object):
-	def __init__(self,filename):
-		self._filename = filename
-		self._listOfSurveys = []
+class User():
+	def __init__(self, newID, permLevel):
+		self._id = newID
+		self._permLevel = permLevel
+		self._courses = []
+		self._notCompletedSurveys = []
+		self._closedSurveys = []
 
-	def getSurvey(self, semester, course):
-		retVal = None
-		for survey in self._listOfSurveys:
-			if survey.getCourseName() == course and survey.getSemesterName() == semester:
-				retVal = survey
-		return retVal
+	def addCourse(newCourse):
+		self._courses.append(newCourse)
+		self._notCompletedSurveys.append(newCourse.getCourseID())
 
-	def addSurvey(self, newSurvey):
-		self._listOfSurveys.append(newSurvey)
+	def addClosedSurveys(courseID):
+		self._closedSurveys.append(course)
 
-	def deleteSurvey(self, semester, course):
-		i = 0
-		for survey in self._listOfSurveys:
-			if survey.getCourseName() == course and survey.getSemesterName() == semester:
-				self._listOfSurveys.pop(i)
-			i += 1
-		os.remove('%s.csv' % self._filename)
-		self.storePool()
+	#Given a course ID, add it to the list of closed surveys
+	def nowCompleted(courseID):
+		for course in self._notCompletedSurveys:
+			if(course == courseID):
+				self._notCompletedSurveys.remove(course)
 
-	def generatePool(self):
-		with open('%s.csv' % self._filename, 'r') as csv_in:
-			reader = csv.reader(csv_in)
-			for row in reader:
-				if row != "":
-					newSurvey = Survey(row[0],row[1])
-					newSurvey.generateSurvey()
-					newSurvey.generateResponses()
-					self.addSurvey(newSurvey)
+	def getID():
+		return self._id
 
-	def storePool(self):
-		with open('%s.csv' % self._filename, 'a') as csv_out:
-			writer = csv.writer(csv_out)
-			for survey in self._listOfSurveys:
-				toWrite = []
-				toWrite.append(survey.getCourseName())
-				toWrite.append(survey.getSemesterName())
-				writer.writerow(toWrite)
-				survey.storeSurvey()
-				survey.storeResponses()
+	def getPermission():
+		return self._permLevel		
 
-	def saveSurvey(self, singularSurvey):
-		with open('%s.csv' % self._filename, 'a') as csv_out:
-			writer = csv.writer(csv_out)
-			toWrite = []
-			toWrite.append(singularSurvey.getCourseName())
-			toWrite.append(singularSurvey.getSemesterName())
-			writer.writerow(toWrite)
+	def getCourses():
+		return self._courses
 
-	def getSurveyList(self):
-		return self._listOfSurveys
-  
+	def getNotCompleted():
+		return _notCompletedSurveys
+
+	def getClosedSurveys():
+		return _closedSurveys
+
+	def setID(newID):
+		self._id = newID
+
+	def setPermission(newPermLevel):
+		self._permLevel = newPermLevel
+
+	def setCourses(courseList):
+		self._courses = courseList
+
+	def setNotCompletedSurveys(newUntouchedSurveys):
+		self._notCompletedSurveys = newUntouchedSurveys
+
+	def setClosedSurveys(newClosedSurveys)
+		self._closedSurveys = newClosedSurveys
 
 
-class Survey(object):
-	def __init__(self, courseName, semesterName):
-		self._courseName = courseName
-		self._semesterName = semesterName
-		self._questionList = []
-		self._responses = []
+class SurveyPool(Object):
+	def __init__(self):
 
-	def getCourseName(self):
-		return self._courseName
+class QuestionPool(Object):
+	def __init__(self):
 
-	def getSemesterName(self):
-		return self._semesterName
+class DataPool(Object):
+	def __init__(self):
 
-	def addQuestion(self, newQuestion):
-		if(type(newQuestion) == Question):
-			self._questionList.append(newQuestion)
-			print("Question added")
-		else:
-			print("Failure")
-			print(type(newQuestion))
+class Survey(Object):
+	def __init__(self):
 
-	def setQuestions(self, newQuestions):
-		self._questionList = newQuestions
+class Question(Object):
+	def __init__(self):
 
-	def getQuestions(self):
-		return self._questionList;
+class Data(Object):
+	def __init__(self):
 
-	def addResponse(self, newResponse):
-		if(newResponse.getData() != []):
-			self._responses.append(newResponse)
+class FileWriter(Object):
+	def __init__(self):
 
-	def setResponses(self, newResponses):
-		self._responses = newResponses
+class SQLWriter(FileWriter):
+	def __init__(self):
 
-	def getResponses(self):
-		return self._responses
-
-	def generateSurvey(self):
-		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'r') as csv_in:
-			reader = csv.reader(csv_in)
-			for row in reader:
-				questionToAdd = Question(row[0])
-				self.addQuestion(questionToAdd)
-
-	def storeSurvey(self):
-		with open('%s%sQ.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
-			writer = csv.writer(csv_out)
-			#self._questionList[:] = [x for x in self._questionList if type(x) == Question]
-
-			for question in self._questionList:
-				writer.writerow([question.getQuestionName()])
-
-	def generateResponses(self):
-		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'r') as csv_in:
-			reader = csv.reader(csv_in)
-			for row in reader:
-				responseToAdd = Data(row)
-				self.addResponse(responseToAdd)
-
-	def storeResponses(self):
-		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
-			writer = csv.writer(csv_out)
-			#TotalList is our list of all responses
-			totalList = self.getResponses()
-			#For every data object in the list
-			for response in totalList:
-				newStr = response.getData()
-				print("The response data is:")
-				print(response.getData())
-				#We're going to call the getData function
-				writer.writerow(newStr)
-
-	def storeResponse(self, singularResponse):
-		with open('%s%sA.csv' % (self._semesterName, self._courseName) , 'a') as csv_out:
-			writer = csv.writer(csv_out)
-			writer.writerow(singularResponse.getData())
-
-
-	def resetSurvey(self):
-		os.remove('%s%sA.csv' % (self._semesterName, self._courseName))
-		os.remove('%s%sQ.csv' % (self._semesterName, self._courseName))
-		self.setQuestions([])
-		self.setResponses([])
-
-class Question(object):
-	def __init__(self, questionString):
-		self._questionString = questionString
-
-	def getQuestionName(self):
-		return self._questionString
-
-	def setQuestionName(self, newName):
-		self._questionString = newName
-
-
-
-class Data(object):
-	def __init__(self, responses):
-		self._responses = responses
-
-	def getData(self):
-		return self._responses
-
-	def readData(self, newResponses):
-		self._responses = newResponses
-
-	def addData(self, responseToAdd):
-		self._responses.append(responseToAdd)
-
-def fileWriter(object):
-	def __init__(self,response)
-
-#What sort of stuff do I need to do?
-# Read from CSV files
-# Write to database
-# Read from databse
-
-
-# So we have a controller that has methods for both the UserData.db and the Surveys.db
-# So we have a UserDataModel and a SurveyModel class
-# The view is what's done by Mandar
-
-# So, knowing this, what essential
+class CSVWriter(FileWriter)
+	def __init__(self):
