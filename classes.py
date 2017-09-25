@@ -1,21 +1,62 @@
-#CHANGE SURVEY SO THAT IT ONLY INCLUDES A LIST OF QUESTION IDS, AND NOT A QUESTION POOL
-#GENERALLY FIX UP SURVEY
-
+import sqlite3
+import csv
 
 class Authentication(object):
+	def __init__(self):
+		self._dbName = "Users.db"
+	
 	#Given a username/password, checks to see if it's a legit combination
-	def IsValidUser():
+	def IsValidUser(username, password):
+		if(username == "admin" AND pasword == "admin"):
+			return True
+		else:
+			writer = SQLWriter()
+			query = "SELECT * FROM Passwords WHERE ZID = %s AND PASSWORD = %s" % (username, password)
+			valid = writer.dbselect(query, self._dbName)
+			if (valid != []):
+				return True
+		return False
 
 	#Given a username, will return a user object
-	def LoginUser():
+	def LoginUser(username):
+		newUser = User(0)
+		if(username == "admin"):
+			return newUser
+		else:
+			writer = SQLWriter()
+			#Set permissions
+			query = "SELECT * FROM Passwords WHERE ZID = %s" % (username)
+			response = writer.dbselect(query, self._dbName)
+			if(response[2] == "staff"):
+				newUser.setPermission(1)
+			else:
+				newUser.setPermission(2)
+			#Set courses
+			query = "SELECT * FROM Enrolments WHERE ZID = %s" % (username)
+			response = writer.dbselect(query, self._dbName)
+			for item in response:
+				stringToAdd = item[1] + item[2]
+				newUser.addCourse(stringToAdd)
+			#Return user object
+			return newUser
 
 	#Fill in the Users table
 	def buildUserBase():
+		writer = SQLWriter()
+		with open('passwords.csv', 'r') as csv_in:
+			reader = csv.reader(csv_in)
+			for row in reader:
+				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
+					writer.dbinsert(query)
+		with open('enrolments.csv','r') as csv_in:
+			reader = csv.reader(csv_in)
+			for row in reader:
+				query = "INSERT INTO Enrolmenents VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
+				writer.dbinsert(query)
 
 class User(object):
-	def __init__(self, newID, permLevel):
+	def __init__(self, permLevel):
 		self._dbName = "Users.db"
-		self._id = newID
 		self._permLevel = permLevel
 		self._courses = []
 		self._notCompletedSurveys = []
@@ -34,9 +75,6 @@ class User(object):
 			if(course == courseID):
 				self._notCompletedSurveys.remove(course)
 
-	def getID():
-		return self._id
-
 	def getPermission():
 		return self._permLevel		
 
@@ -48,9 +86,6 @@ class User(object):
 
 	def getClosedSurveys():
 		return _closedSurveys
-
-	def setID(newID):
-		self._id = newID
 
 	def setPermission(newPermLevel):
 		self._permLevel = newPermLevel
