@@ -119,10 +119,6 @@ def survey(semestername, coursename):
 	if request.method == 'POST':
 		answerList = []
 		for question in rightSurvey.getQuestions():
-			#print("What we're trying to get is: ")
-			#print(question.getQuestionName())
-			#print(request.form.get(question.getQuestionName()))
-			#For some reason, request.form.get(question) is empty
 			if request.form.get(question.getQuestionName()):
 				answerList.append(request.form.get(question.getQuestionName()))
 		newDataObj = Data(answerList)
