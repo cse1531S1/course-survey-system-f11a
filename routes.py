@@ -4,11 +4,12 @@ from classes import Survey, Question, Data
 import csv
 
 #LOGIN PAGE
-@app.route('/', methods=["GET","POST"])
+@app.route('/login', methods=["GET","POST"])
 def login():
+	#call a function which takes in zid and password and returns if invalid, staff, student or admin. 
 	error = None
 	if request.method == 'POST':
-		if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+		if request.form['zID'] != 'admin' or request.form['password'] != 'admin':
 			error = 'Invalid Credentials. Please try again.'
 		else:
 			return redirect(url_for('dashboard'))
@@ -16,13 +17,27 @@ def login():
 
 
 #ADMIN DASHBOARD
-@app.route('/Dashboard')
-def dashboard():
-	return render_template('dashboard.html')
+@app.route('/admin/dashboard')
+def admindashboard():
+	return render_template('adminDashboard.html')
+
+#STAFF DASHBOARD
+@app.route('/staff/dashboard')
+def staffdashboard():
+	return render_template('staffDashboard.html')
+
+#ADMIN DASHBOARD
+@app.route('/student/dashboard')
+def studentdashboard():
+	return render_template('studentDashboard.html')
+
 
 #NEW QUESTIONS PAGE
-@app.route('/NewQuestions',methods=["GET","POST"])
-def newquestions():
+@app.route('/admin/addQuestion',methods=["GET","POST"])
+def addquestions():
+	 #need to consider if mandatory or optional
+	 #qtype = request.form['questiontype']
+	 #pass option to backend (qtype = mandatory or optional)
     submitted = None;
     if request.method == 'POST':
         question = request.form['q']
@@ -32,29 +47,38 @@ def newquestions():
             with open('questionList.csv','a') as csv_out:
                 writer = csv.writer(csv_out)
                 writer.writerow([question]) 
-            submitted = "Question submitted!"
-    return render_template('newquestions.html', status = submitted)
+            return redirect((url_for('addedQuestions'))
+    return render_template('addQuestion.html', status = submitted)
+    
+#ADDED QUESTIONS PAGE
+@app.route('/admin/addedQuestions')
+def addQuestion:
+    return render_template('addedQuestion.html')
+    
 
 #QUESTION LIST PAGE
-@app.route('/QuestionList')
+@app.route('/admin/allQuestions')
 def questionlist():
     with open('questionList.csv','r') as csv_in:
         reader = csv.reader(csv_in)
         questions_list = list(reader)
         stringVersion = "<br/>".join(item[0] for item in questions_list)
-    return render_template('questions.html', questions = stringVersion)
+    return render_template('allQuestions.html', questions = stringVersion)
 
 
 #NEW SURVEY PAGE goes to /addSurvey
-@app.route('/courseSelection') 
+@app.route('/admin/chooseSession') 
 def newsurvey():
 	courses_list = get_list_of_courses()
 	semesters = get_sems()
 
 	#pass though dictionary of courses with semester as keys and sem list as key list
-	return render_template('courseselection.html', courses = courses_list, semesters = semesters)
+	return render_template('chooseSession.html', courses = courses_list, semesters = semesters)
 
-#SELECT QUESTIONS PAGE  
+#SELECT QUESTIONS PAGE
+  
+#need to change this to /admin/chooseQuestions depending on implementation
+
 @app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
@@ -93,26 +117,38 @@ def courseObject(semestername, coursename):
 
 
 #PAGE AFTER SELECTING QUESTIONS
-@app.route('/questionselected', methods=['GET','POST'])
+@app.route('/admin/surveySubmitted', methods=['GET','POST'])
 def questionselected():
 	if request.method == "POST":
 		name = request.form["bt"]
 		if name == "createanother":
 			return redirect(url_for("newsurvey"))
+		
+		else if name == "return":
+			return redirect(url_for("admindashboard"))
+			
 	else:
-		semesterName = request.args['semesterName']
-		courseName = request.args['courseName']
-		return render_template('questionselected.html', sem = semesterName, course = courseName)   
+		return render_template('surveySubmitted.html')   
     
 #List of surveys page
-@app.route('/viewSurveysList')
-def viewSurveysList():
+@app.route('/staff/reviewSurvey')
+def reviewSurvey():
 	# This function gives the webpage a list of surveys via he SurveyPool object
-	return render_template('viewSurveyList.html', SurveyList = surveyList.getSurveyList())
+   return render_template('reviewSurvey.html', SurveyList = surveyList.getSurveyList())
+   
+
+#REVIEW FINISHED
+@app.route('/staff/finishedReview')
+def finishedReview():
+	return render_template('finishedReview.html')
+
 
 	
 # SURVEY PAGE
-@app.route ('/survey/<semestername>/<coursename>', methods=["GET", "POST"])
+
+# fix up url based on implementation
+
+@app.route ('/student/survey/<semestername>/<coursename>', methods=["GET", "POST"])
 def survey(semestername, coursename):
 
 	rightSurvey = surveyList.getSurvey(semestername, coursename)
@@ -135,10 +171,17 @@ def survey(semestername, coursename):
 		for item in listRecieved:
 			listToSend.append(item.getQuestionName())
 		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
-	
-@app.route ('/completed', methods = ["GET","POST"])
+
+#SURVEY COMPLETED	
+@app.route ('/student/surveySubmitted')
 def completed():
-	return render_template('success.html')
+	return render_template('surveySubmitted.html')
+	
+	
+#VIEW METRICS
+@app.route('/admin/metricsSelection')
+def metrics():
+	return render_template('adminMetricsSelection.html')
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):
