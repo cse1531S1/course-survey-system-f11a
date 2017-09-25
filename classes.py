@@ -1,8 +1,20 @@
 #CHANGE SURVEY SO THAT IT ONLY INCLUDES A LIST OF QUESTION IDS, AND NOT A QUESTION POOL
+#GENERALLY FIX UP SURVEY
 
-class User():
-	def __init__(self, newID, permLevel, dbName):
-		self._dbName = dbName
+
+class Authentication(object):
+	#Given a username/password, checks to see if it's a legit combination
+	def IsValidUser():
+
+	#Given a username, will return a user object
+	def LoginUser():
+
+	#Fill in the Users table
+	def buildUserBase():
+
+class User(object):
+	def __init__(self, newID, permLevel):
+		self._dbName = "Users.db"
 		self._id = newID
 		self._permLevel = permLevel
 		self._courses = []
@@ -53,10 +65,12 @@ class User():
 		self._closedSurveys = newClosedSurveys
 
 class SurveyPool(Object):
-	def __init__(self, dbName):
-		self._dbName = dbName
+	def __init__(self):
+		self._dbName = "InitData.db"
 		self._surveys = []
 		self._idCounter = 0
+		self._stage = 0
+		self._usersWhoHaveCompleted = []
 
 	def getSurvey(surveyID):
 		retVal = None
@@ -67,6 +81,9 @@ class SurveyPool(Object):
 
 	def addSurvey(survey):
 		self._surveys.append(survey)
+		writer = SQLWriter()
+		query = "INSERT INTO Surveys VALUES %s" % (survey.getCourseName())
+		writer.dbinsert(query)
 
 	def deleteSurvey(surveyID):
 		for survey in self._surveys:
@@ -74,10 +91,14 @@ class SurveyPool(Object):
 				self._surveys.remove(survey)
 
 	def generatePool():
-		#PENDING DATABASE CONFIG
-
-	def storePool():
-		#PENDING DATABASE CONFIG	
+		writer = SQLWriter()
+		query = "SELECT * FROM Surveys"
+		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
+		for item in courseList:
+				newSurvey = Survey(str(item), self._idCounter)
+				self._idCounter++
+				newSurvey.generateQuestions()
+				newSurvey.responseList.generatePool()
 
 	def getSurveyList(self):
 		return self._surveys
@@ -88,8 +109,8 @@ class SurveyPool(Object):
 		return retVal
 
 class QuestionPool(Object):
-	def __init__(self, dbName):
-		self._dbName = dbName
+	def __init__(self):
+		self._dbName = "InitData.db"
 		self._questions = []
 		self._questionCounter = 0
 
@@ -132,7 +153,7 @@ class QuestionPool(Object):
 		writer = SQLWriter()
 		for q in self._questions:
 			query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getQuestionString(), q.getAnswerType(), q.getIsMandatory())
-			writer.dbinsert(query, self.dbName)
+			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
 		query = "DELETE * FROM Questions"
@@ -146,7 +167,25 @@ class QuestionPool(Object):
 class ResponsePool(Object):
 	def __init__(self, dbName):
 		self._dbName = dbName
+		self._currentID = 0
 		self._responses = []
+
+	#Given a response list, add it to the database and the pool
+	def addResponse(responseList):
+		newResponse = Response(responseList, self._currentID)
+		self._currentID++
+		writer = SQLWriter()
+		#So we go through the response object, and pad it out
+		#Should work as per https://stackoverflow.com/questions/8316176/insert-list-into-my-database-using-python
+		toInsert = []
+		for i in range(0,20):
+			if(i < len(newResponse.getResponses())):
+				toInsert.append(newResponse.getResponses()[i])
+			else:
+				toInsert.append("")
+		query = "INSERT INTO Responses (q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20) VALUES %r" % (tuple(toInsert))
+		writer.dbinsert(query, self._dbName)
+		self._responses.append(newResponse)
 
 	def getResponse(responseID):
 		retVal = None
@@ -161,13 +200,31 @@ class ResponsePool(Object):
 				self._responses.remove(resp)
 
 	def generatePool(self):
-		#PENDING DATABASE CONFIG
-		
+		writer = SQLWriter()
+		i = 0
+		while True:
+			query = "SELECT * FROM Responses WHERE rowid = %s" % str(i) 
+			retVal = writer.dbselect(query, self._dbName)
+			if retVal == []:
+				break
+			else:
+				newResp = Repsonse(retVal, self._currentID)
+				self._currentID++
+				self._responses.append(newResp)
+			i++
+
 	def storePool(self):
-		#PENDING DATABASE CONFIG
+		writer = SQLWriter()
+		for q in self.responses:
+			query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getQuestionString(), q.getAnswerType(), q.getIsMandatory())
+			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
-		#PENDING DATABASE CONFIG
+		writer = SQLWriter()
+		query = "DELETE * FROM Questions"
+		writer.dbinsert(query, self._dbName)
+		self._responses = []
+		self._currentID = 0
 
 	def getResponseList():
 		return self._responses
@@ -175,9 +232,10 @@ class ResponsePool(Object):
 class Survey(Object):
 	def __init__(self, coursename, uniqueID):
 		self._coursename = coursename
+		self._dbName = coursename + ".db"
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
-		self._responsePool = ResponsePool("")#TBD
+		self._responsePool = ResponsePool(self._dbName)#TBD
 	
 	def getCourseName(self):
 		return self._coursename
@@ -185,6 +243,9 @@ class Survey(Object):
 	#Given a question, add the question ID to the pool
 	def addQuestion(self, q):
 		self._questionList.append(q.getQuestionID())
+		writer = SQLWriter()
+		query = "INSERT INTO Questions VALUES %s" % (str(q.getQuestionID()))
+		writer.dbinsert(query, self._dbName)
 	
 	#Given a list of question IDs, set the list of QIDs to those questions
 	def setQuestions(self, newQuestions):
@@ -217,14 +278,14 @@ class Survey(Object):
 			else:
 				self._questions.append(int(retVal))
 			i++
+
 	def generateResponses(self):
 		self._responsePool.generatePool()
 
 	def resetSurvey(self):
 		writer = SQLWriter()
 		query = "DELETE * FROM Questions"
-		dbstring = self._coursename + ".db"
-		writer.dbinsert(query, dbstring)
+		writer.dbinsert(query, self._dbName)
 		self._questionList = []
 		self._responsePool.clearPool()
 
@@ -248,8 +309,9 @@ class Question(Object):
 		return self._isMandatory
 
 class Response(Object):
-	def __init__(self, responses):
+	def __init__(self, responses, ID):
 		self._responses = responses
+		self._responseID = ID
 
 	def getResponse():
 		return self._responses
@@ -260,8 +322,9 @@ class Response(Object):
 	def addResponse(newResponse):
 		self._responses.append(newResponse)
 
+	def getResponseID():
+		return self._responseID
 
-#FOR TOMORROW
 class SQLWriter(Object):
 	def dbselect(self, query, dbName):
 		connection = sqlite3.connect(dbName)
@@ -280,6 +343,14 @@ class SQLWriter(Object):
 		cursorObj.execute(query)
 		connection.commit()
 		cursorObj.close()
+
+	def dbGetRows(self, query, dbName):
+		connection = sqlite3.conect(dbName)
+		cursorObj = connection.cursor()
+		retVal = cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
+		return retVal
 
 class CSVWriter(FileWriter)
 	def readFromCSV(filename):
