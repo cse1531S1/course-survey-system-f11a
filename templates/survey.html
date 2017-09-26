@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html>
-<title>New Questions</title>
+<title>Survey</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -10,7 +10,7 @@
 <body>
 
   <!-- Question List -->
-  <h1>Questions</h1>
+  <h1>Welcome to the sruvey submission form</h1>
   {% if questions %}
     {% autoescape false %}
       <form action="/survey/{{ sem }}/{{ course }}" method="POST">
