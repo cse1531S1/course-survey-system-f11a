@@ -1,7 +1,0 @@
-- Rewrite acceptannce criteria
-- Make website pwetty
-- Fix labelling for convos
-- Velocity chart
-- Responsibilities table
-- Summary of decisions (as group)
-- Formalise minutes
