@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Add Question</title>
+<title>Course Selection</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -31,23 +31,24 @@
 	  </div>
 	</div>
 <!-- End Navbar -->
-
-
-	<h1> New Question Form</h1>
-	<form action="" method="post">
-        <input type="text" placeholder="Enter a question" name="q" value="{{request.form.q }}">
-        Type of Question: <br>
-        <input type="radio" name="questionType" value="mandatory" checked> Mandatory<br>
-        <input type="radio" name="questionType" value="optional"> Optional<br>
-        <br>Entry format of Question: <br>
-        <input type="radio" name="entryType" value="text" checked> Text Based<br>
-        <input type="radio" name="entryType" value="MCQ"> Standard Multiple Choice<br>
-        <input class="btn btn-default" type="submit" value="Add Question">
-	</form>
-
-	{%if status%}
-	{{status}}
-	{%endif%}
+	
 <!-- Page content -->
+
+	<h1> Choose Session</h1>
+	    <br>
+    	<h2>Sessions</h2>
+    	<br>Please select a session from below
+
+		{% for sem in semesters %}
+			<div class="w3-dropdown-hover">
+			    <button class="w3-button">{{ sem }}</button>
+			    <div id = "semCourse" class="w3-dropdown-content w3-bar-block w3-border">
+			    {% for course in courses[sem] %}
+				    <a href="/addSurvey/{{ sem }}/{{ course }}" class="w3-bar-item w3-button w3-animate-zoom">{{ course }}</a>
+			    {% endfor %}
+			    </div>
+			</div>
+		{% endfor %}
+		
 </body>
 </html>

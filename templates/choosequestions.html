@@ -7,32 +7,36 @@
 <style>	body {font-family: "Lato", sans-serif} </style>
 
 <body>
-<!-- Navbar -->
+<!-- Admin Navbar -->
 	<div class="w3-container">
 		<div class="w3-bar w3-light-grey">
-			<a href="/Dashboard" class="w3-bar-item w3-button w3-right">Home</a> 
+		    <a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
+		    <a href="/metrics" class="w3-bar-item w3-button w3-right">Metrics</a> <!-- This should be a dropdown with all survey metrics -->
 			<div class="w3-dropdown-hover w3-right">
 	 			<button class="w3-button">View</button>
 	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">
 			        <a href="/viewSurveysList" class="w3-bar-item w3-button">Active Surveys</a>
-			        <a href="/QuestionList" class="w3-bar-item w3-button">View Questions</a>
+			        <a href="/admin/allQuestions" class="w3-bar-item w3-button">All Questions</a>
 			    </div>
 			</div>
 			<div class="w3-dropdown-hover w3-right">
 	 			<button class="w3-button">Add</button>
 				<div class="w3-dropdown-content w3-bar-block w3-card-4">
-	        		<a href="/NewQuestions" class="w3-bar-item w3-button">Add Question</a>
-				    <a href="/courseSelection" class="w3-bar-item w3-button">Add Survey</a>
+	        		<a href="/admin/addQuestion" class="w3-bar-item w3-button">New Question</a>
+				    <a href="/admin/chooseSession" class="w3-bar-item w3-button">New Survey</a>
 
 				</div>
 			</div>
-			<a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
+			<a href="/admin/Dashboard" class="w3-bar-item w3-button w3-right">Home</a> 
 	  </div>
 	</div>
 <!-- End Navbar -->
 
 <!-- Page content-->
 	<h1> Choose Questions</h1>
+	
+	
+    <h3>Please select the mandatory questions</h3>
 	{% if questions %}
 		<Form method="POST">
 		{% autoescape false %}
