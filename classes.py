@@ -4,10 +4,10 @@ import csv
 class Authentication(object):
 	def __init__(self):
 		self._dbName = "Users.db"
-	
+
 	#Given a username/password, checks to see if it's a legit combination
 	def IsValidUser(username, password):
-		if(username == "admin" AND pasword == "admin"):
+		if(username == "admin" and pasword == "admin"):
 			return True
 		else:
 			writer = SQLWriter()
@@ -47,7 +47,7 @@ class Authentication(object):
 			reader = csv.reader(csv_in)
 			for row in reader:
 				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
-					writer.dbinsert(query)
+				writer.dbinsert(query)
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
@@ -76,7 +76,7 @@ class User(object):
 				self._notCompletedSurveys.remove(course)
 
 	def getPermission():
-		return self._permLevel		
+		return self._permLevel
 
 	def getCourses():
 		return self._courses
@@ -96,10 +96,10 @@ class User(object):
 	def setNotCompletedSurveys(newUntouchedSurveys):
 		self._notCompletedSurveys = newUntouchedSurveys
 
-	def setClosedSurveys(newClosedSurveys)
+	def setClosedSurveys(newClosedSurveys):
 		self._closedSurveys = newClosedSurveys
 
-class SurveyPool(Object):
+class SurveyPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._surveys = []
@@ -131,7 +131,7 @@ class SurveyPool(Object):
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
 				newSurvey = Survey(str(item), self._idCounter)
-				self._idCounter++
+				self._idCounter += 1
 				newSurvey.generateQuestions()
 				newSurvey.responseList.generatePool()
 
@@ -140,10 +140,10 @@ class SurveyPool(Object):
 
 	def getIDCounter():
 		retVal = self._idCounter
-		self._idCounter++
+		self._idCounter += 1
 		return retVal
 
-class QuestionPool(Object):
+class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._questions = []
@@ -164,16 +164,16 @@ class QuestionPool(Object):
 	def addQuestion(self, qString, answerType, isMandatory):
 		q = Question(self._questionCounter, qString, answerType, isMandatory)
 		self._questions.append(q)
-		self._questionCounter++
+		self._questionCounter += 1
 		writer = SQLWriter()
 		query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, qString, answerType, isMandatory)
-		writer.dbinsert(query, self.dbName)	
+		writer.dbinsert(query, self.dbName)
 
 	def generatePool(self):
 		writer = SQLWriter()
 		i = 0
 		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
+			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i)
 			retVal = writer.dbselect(query, self.dbName)
 			if retVal == []:
 				break
@@ -182,7 +182,7 @@ class QuestionPool(Object):
 				self._questions.append(newq)
 				if int(retVal[0]) > self._questionCounter:
 					self._questionCounter = int(retVal[0])
-			i++
+			i += 1
 
 	def storePool(self):
 		writer = SQLWriter()
@@ -199,7 +199,7 @@ class QuestionPool(Object):
 	def getQuestionList():
 		return self._questions
 
-class ResponsePool(Object):
+class ResponsePool(object):
 	def __init__(self, dbName):
 		self._dbName = dbName
 		self._currentID = 0
@@ -208,7 +208,7 @@ class ResponsePool(Object):
 	#Given a response list, add it to the database and the pool
 	def addResponse(responseList):
 		newResponse = Response(responseList, self._currentID)
-		self._currentID++
+		self._currentID += 1
 		writer = SQLWriter()
 		#So we go through the response object, and pad it out
 		#Should work as per https://stackoverflow.com/questions/8316176/insert-list-into-my-database-using-python
@@ -238,15 +238,15 @@ class ResponsePool(Object):
 		writer = SQLWriter()
 		i = 0
 		while True:
-			query = "SELECT * FROM Responses WHERE rowid = %s" % str(i) 
+			query = "SELECT * FROM Responses WHERE rowid = %s" % str(i)
 			retVal = writer.dbselect(query, self._dbName)
 			if retVal == []:
 				break
 			else:
 				newResp = Repsonse(retVal, self._currentID)
-				self._currentID++
+				self._currentID += 1
 				self._responses.append(newResp)
-			i++
+			i += 1
 
 	def storePool(self):
 		writer = SQLWriter()
@@ -264,14 +264,14 @@ class ResponsePool(Object):
 	def getResponseList():
 		return self._responses
 
-class Survey(Object):
+class Survey(object):
 	def __init__(self, coursename, uniqueID):
 		self._coursename = coursename
 		self._dbName = coursename + ".db"
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
-	
+
 	def getCourseName(self):
 		return self._coursename
 
@@ -281,7 +281,7 @@ class Survey(Object):
 		writer = SQLWriter()
 		query = "INSERT INTO Questions VALUES %s" % (str(q.getQuestionID()))
 		writer.dbinsert(query, self._dbName)
-	
+
 	#Given a list of question IDs, set the list of QIDs to those questions
 	def setQuestions(self, newQuestions):
 		self._questionList = newQuestions
@@ -306,13 +306,13 @@ class Survey(Object):
 		writer = SQLWriter()
 		i = 0
 		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
+			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i)
 			retVal = writer.dbselect(query, self.dbName)
 			if retVal == []:
 				break
 			else:
 				self._questions.append(int(retVal))
-			i++
+			i += 1
 
 	def generateResponses(self):
 		self._responsePool.generatePool()
@@ -324,7 +324,7 @@ class Survey(Object):
 		self._questionList = []
 		self._responsePool.clearPool()
 
-class Question(Object):
+class Question(object):
 	def __init__(self, questionID, qString, answerType, isMandatory):
 		self._questionID = questionID
 		self._question = qString
@@ -343,7 +343,7 @@ class Question(Object):
 	def getIsMandatory():
 		return self._isMandatory
 
-class Response(Object):
+class Response(object):
 	def __init__(self, responses, ID):
 		self._responses = responses
 		self._responseID = ID
@@ -360,13 +360,13 @@ class Response(Object):
 	def getResponseID():
 		return self._responseID
 
-class SQLWriter(Object):
+class SQLWriter(object):
 	def dbselect(self, query, dbName):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor() #Basically our file handle lol
 		rows = cursorObj.execute(query) #Add the query to the command queue, get response
 		connection.commit() #Execute the command queue
-		results = [] 
+		results = []
 		for row in rows: #For every tuple we've beenr eturned
 			results.append(row) #Append this to our list of tuples
 		cursorObj.close() #Close cursor (like fclose)
@@ -387,7 +387,7 @@ class SQLWriter(Object):
 		cursorObj.close()
 		return retVal
 
-class CSVWriter(FileWriter)
+class CSVWriter(FileWriter):
 	def readFromCSV(filename):
 		retVal = []
 		with open('%s' % (filename) , 'r') as csv_in:
