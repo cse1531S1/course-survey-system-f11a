@@ -1,25 +1,40 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, question_list, surveyList
-from classes import Survey, Question, Data
+from classes import Authentication, User
 import csv
+
+allQuestions = QuestionPool()
 
 #LOGIN PAGE
 @app.route('/login', methods=["GET","POST"])
 def login():
-	#call a function which takes in zid and password and returns if invalid, staff, student or admin. 
+	#create database of all users
+	buildUserBase() 
 	error = None
 	if request.method == 'POST':
-		if request.form['zID'] != 'admin' or request.form['password'] != 'admin':
+		#check for user against database
+		if IsValidUser(request.form['zID'], request.form['password']) == False:
 			error = 'Invalid Credentials. Please try again.'
 		else:
-			return redirect(url_for('dashboard'))
+			#determine type of user
+			currentuser = LoginUser(request.form['zID'])
+			if currentuser.getPermission() == 0:
+				return redirect(url_for('admindashboard'))
+				
+			elif currentuser.getPermission() == 1:
+				return redirect(url_for('staffdashboard'))
+				
+			else return redirect(url_for('studentdashboard'))
+			
 	return render_template('login.html', error=error)
 
 
 #ADMIN DASHBOARD
 @app.route('/admin/dashboard')
 def admindashboard():
-	return render_template('adminDashboard.html')
+	#need live survey forms, survey to be reviewed, questions in the system
+	qlist = allQuestions.getQuestionList()
+	return render_template('adminDashboard.html', qlist = qlist)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
@@ -36,34 +51,49 @@ def studentdashboard():
 @app.route('/admin/addQuestion',methods=["GET","POST"])
 def addquestions():
 	 #need to consider if mandatory or optional
-	 #qtype = request.form['questiontype']
+	
 	 #pass option to backend (qtype = mandatory or optional)
     submitted = None;
     if request.method == 'POST':
         question = request.form['q']
+        qtype = request.form['questionType']
+        etype = request.form['entryType']
         if(question == ""):
             submitted = "Please enter your question into the box!"
         else:
-            with open('questionList.csv','a') as csv_out:
-                writer = csv.writer(csv_out)
-                writer.writerow([question]) 
+        	if qtype == 'mandatory':
+        		qtype = 1
+        	else:
+        		qtype = 0
+
+        	#entryType is passed in as a string --> check with implementation
+            allQuestions.addQuestion(question, etype, qtype)
+            storePool()											#check if needed
+
             return redirect((url_for('addedQuestions'))
     return render_template('addQuestion.html', status = submitted)
     
 #ADDED QUESTIONS PAGE
 @app.route('/admin/addedQuestions')
 def addQuestion:
-    return render_template('addedQuestion.html')
+    return render_template('adminSurveySubmitted.html')
     
 
 #QUESTION LIST PAGE
 @app.route('/admin/allQuestions')
 def questionlist():
-    with open('questionList.csv','r') as csv_in:
-        reader = csv.reader(csv_in)
-        questions_list = list(reader)
-        stringVersion = "<br/>".join(item[0] for item in questions_list)
-    return render_template('allQuestions.html', questions = stringVersion)
+    qlist = allQuestions.getQuestionList()
+    optionalq = []
+    mandatoryq = []
+    for q in qlist:
+    	if q.getIsMandatory():
+    		mandatoryq.append(q)
+    	else:
+    		optionalq.append(q)
+
+    #need to ask about delete question interface
+
+    return render_template('addedQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
 
 
 #NEW SURVEY PAGE goes to /addSurvey
