@@ -7,7 +7,7 @@ class Authentication(object):
 	
 	#Given a username/password, checks to see if it's a legit combination
 	def IsValidUser(username, password):
-		if(username == "admin" AND pasword == "admin"):
+		if(username == "admin" & pasword == "admin"):
 			return True
 		else:
 			writer = SQLWriter()
@@ -41,13 +41,14 @@ class Authentication(object):
 			return newUser
 
 	#Fill in the Users table
-	def buildUserBase():
+	def buildUserBase(self):
 		writer = SQLWriter()
 		with open('passwords.csv', 'r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
 				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
-					writer.dbinsert(query)
+				writer.dbinsert(query)
+				
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
@@ -96,7 +97,7 @@ class User(object):
 	def setNotCompletedSurveys(newUntouchedSurveys):
 		self._notCompletedSurveys = newUntouchedSurveys
 
-	def setClosedSurveys(newClosedSurveys)
+	def setClosedSurveys(newClosedSurveys):
 		self._closedSurveys = newClosedSurveys
 
 class SurveyPool(object):
@@ -131,7 +132,7 @@ class SurveyPool(object):
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
 				newSurvey = Survey(str(item), self._idCounter)
-				self._idCounter++
+				self._idCounter+=1
 				newSurvey.generateQuestions()
 				newSurvey.responseList.generatePool()
 
@@ -140,7 +141,7 @@ class SurveyPool(object):
 
 	def getIDCounter():
 		retVal = self._idCounter
-		self._idCounter++
+		self._idCounter+=1
 		return retVal
 
 class QuestionPool(object):
@@ -164,7 +165,7 @@ class QuestionPool(object):
 	def addQuestion(self, qString, answerType, isMandatory):
 		q = Question(self._questionCounter, qString, answerType, isMandatory)
 		self._questions.append(q)
-		self._questionCounter++
+		self._questionCounter+=1
 		writer = SQLWriter()
 		query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, qString, answerType, isMandatory)
 		writer.dbinsert(query, self.dbName)	
@@ -174,7 +175,7 @@ class QuestionPool(object):
 		i = 0
 		while True:
 			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self.dbName)
+			retVal = writer.dbselect(query, self._dbName)
 			if retVal == []:
 				break
 			else:
@@ -182,7 +183,7 @@ class QuestionPool(object):
 				self._questions.append(newq)
 				if int(retVal[0]) > self._questionCounter:
 					self._questionCounter = int(retVal[0])
-			i++
+			i+=1
 
 	def storePool(self):
 		writer = SQLWriter()
@@ -208,7 +209,7 @@ class ResponsePool(object):
 	#Given a response list, add it to the database and the pool
 	def addResponse(responseList):
 		newResponse = Response(responseList, self._currentID)
-		self._currentID++
+		self._currentID+=1
 		writer = SQLWriter()
 		#So we go through the response object, and pad it out
 		#Should work as per https://stackoverflow.com/questions/8316176/insert-list-into-my-database-using-python
@@ -244,9 +245,9 @@ class ResponsePool(object):
 				break
 			else:
 				newResp = Repsonse(retVal, self._currentID)
-				self._currentID++
+				self._currentID+=1
 				self._responses.append(newResp)
-			i++
+			i+=1
 
 	def storePool(self):
 		writer = SQLWriter()
@@ -312,7 +313,7 @@ class Survey(object):
 				break
 			else:
 				self._questions.append(int(retVal))			#NOTE:_questions is part of Questions, should have an appendquestion() function
-			i++
+			i+=1
 
 	def generateResponses(self):
 		self._responsePool.generatePool()
@@ -364,7 +365,7 @@ class SQLWriter(object):
 	def dbselect(self, query, dbName):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor() #Basically our file handle lol
-		rows = cursorObj.execute(query) #Add the query to the command queue, get response
+		rows = cursorObj.execute(query) #Add the query to the command queue, get responses
 		connection.commit() #Execute the command queue
 		results = [] 
 		for row in rows: #For every tuple we've beenr eturned
@@ -387,7 +388,7 @@ class SQLWriter(object):
 		cursorObj.close()
 		return retVal
 
-class CSVWriter(FileWriter)
+class CSVWriter(object):				#NOTE: compiler giving error for FileWriter
 	def readFromCSV(filename):
 		retVal = []
 		with open('%s' % (filename) , 'r') as csv_in:

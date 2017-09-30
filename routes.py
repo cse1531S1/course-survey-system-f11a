@@ -1,30 +1,33 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, question_list, surveyList
-from classes import Authentication, User
+from server import app, question_list
+from classes import Authentication, SurveyPool, QuestionPool
 import csv
 
 allQuestions = QuestionPool()
+allSurveys = SurveyPool()
+authenticate = Authentication()
 
 #LOGIN PAGE
 @app.route('/login', methods=["GET","POST"])
 def login():
 	#create database of all users
-	buildUserBase() 
+	authenticate.buildUserBase() 
 	error = None
 	if request.method == 'POST':
 		#check for user against database
-		if IsValidUser(request.form['zID'], request.form['password']) == False:
+		if authenticate.IsValidUser(request.form['zID'], request.form['password']) == False:
 			error = 'Invalid Credentials. Please try again.'
 		else:
 			#determine type of user
-			currentuser = LoginUser(request.form['zID'])
+			currentuser = authenticate.LoginUser(request.form['zID'])
 			if currentuser.getPermission() == 0:
 				return redirect(url_for('admindashboard'))
 				
 			elif currentuser.getPermission() == 1:
 				return redirect(url_for('staffdashboard'))
 				
-			else return redirect(url_for('studentdashboard'))
+			else:
+				return redirect(url_for('studentdashboard'))
 			
 	return render_template('login.html', error=error)
 
@@ -61,21 +64,19 @@ def addquestions():
         if(question == ""):
             submitted = "Please enter your question into the box!"
         else:
-        	if qtype == 'mandatory':
-        		qtype = 1
-        	else:
-        		qtype = 0
+            if qtype == "mandatory":
+                qtype = 1
+            else:
+                qtype = 0
 
-        	#entryType is passed in as a string --> check with implementation
             allQuestions.addQuestion(question, etype, qtype)
-            storePool()											#check if needed
 
-            return redirect((url_for('addedQuestions'))
+        return redirect(url_for('addedquestions'))
     return render_template('addQuestion.html', status = submitted)
     
 #ADDED QUESTIONS PAGE
 @app.route('/admin/addedQuestions')
-def addQuestion:
+def addedquestions():
     return render_template('adminSurveySubmitted.html')
     
 
@@ -107,9 +108,10 @@ def newsurvey():
 
 #SELECT QUESTIONS PAGE
   
-#need to change this to /admin/chooseQuestions depending on implementation
+#need to change this to /admin/chooseQuestions depending on implementation. Look into HTML FORMS 
+#in tutorial: localhost/adminSurveyForm?choice=COMP2041+17s2
 
-@app.route('/addSurvey/<semestername>/<coursename>',methods=["GET","POST"])
+@app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
@@ -154,7 +156,7 @@ def questionselected():
 		if name == "createanother":
 			return redirect(url_for("newsurvey"))
 		
-		else if name == "return":
+		elif name == "return":
 			return redirect(url_for("admindashboard"))
 			
 	else:
