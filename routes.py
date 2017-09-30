@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, question_list, surveyList
-from classes import Survey, Question, Data
+from classes import Survey, Question
 import csv
 
 #LOGIN PAGE
