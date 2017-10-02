@@ -119,7 +119,7 @@ def courseObject(semestername, coursename):
 		surveyname = semestername+coursename
 		allSurveys.addSurvey(surveyname)
 
-		thisSurvey = allSurveys.getSurvey(allSurveys._idCounter)
+		thisSurvey = allSurveys.getSurveyByName(surveyname);
 
 		for q in questions:
 			if request.form[q] != NULL:
