@@ -47,12 +47,12 @@ class Authentication(object):
 			reader = csv.reader(csv_in)
 			for row in reader:
 				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
-				writer.dbinsert(query)
+				writer.dbinsert(query, self._dbName)
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
 				query = "INSERT INTO Enrolmenents VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
-				writer.dbinsert(query)
+				writer.dbinsert(query, self._dbName)
 
 class User(object):
 	def __init__(self, permLevel):
@@ -107,10 +107,17 @@ class SurveyPool(object):
 		self._stage = 0
 		self._usersWhoHaveCompleted = []
 
-	def getSurvey(self,surveyID):
+	def getSurveyByID(self,surveyID):
 		retVal = None
 		for survey in self._surveys:
 			if(survey.getSurveyID() == surveyID):
+				retVal = survey
+		return retVal
+
+	def getSurveyByName(self,surveyName):
+		retVal = None
+		for survey in self._surveys:
+			if(survey.getCourseName() == surveyName):
 				retVal = survey
 		return retVal
 
