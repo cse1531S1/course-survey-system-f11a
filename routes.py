@@ -3,8 +3,6 @@ from server import app, question_list
 from classes import Authentication, SurveyPool, QuestionPool
 import csv
 
-allQuestions = QuestionPool()
-allSurveys = SurveyPool()
 authenticate = Authentication()
 
 #LOGIN PAGE
@@ -64,10 +62,13 @@ def addquestions():
         if(question == ""):
             submitted = "Please enter your question into the box!"
         else:
-            if qtype == "mandatory":
-                qtype = 1
-            else:
-                qtype = 0
+            #default values: mandatory, MCQ
+            qtype = 1
+            etype = 1
+            if qtype == "optional":
+            	qtype = 0
+            if etype == "text":
+            	etype = 0
 
             allQuestions.addQuestion(question, etype, qtype)
 
@@ -115,37 +116,21 @@ def newsurvey():
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
-		emptyList = []
-		global question_list
-		#Retrieve the relevant survey; otherwise, create a new one
-		thisSurvey = surveyList.getSurvey(semestername, coursename)
-		if thisSurvey == None:
-			thisSurvey = Survey(coursename, semestername)
-			surveyList.addSurvey(thisSurvey)
-			surveyList.saveSurvey(thisSurvey)
-		else:
-			surveyList.deleteSurvey(semestername, coursename)
-			thisSurvey.resetSurvey()
-			thisSurvey = Survey(coursename, semestername)
-			surveyList.addSurvey(thisSurvey)
-			surveyList.saveSurvey(thisSurvey)
+		surveyname = semestername+coursename
+		allSurveys.addSurvey(surveyname)
 
-		#Create and appennd Question and Data objects
-		for q in question_list:
-			if request.form.get(q):
-				newQObj = Question(str(q))
-				thisSurvey.addQuestion(newQObj)
+		thisSurvey = allSurveys.getSurvey(allSurveys._idCounter)
 
-		thisSurvey.storeSurvey()
-		return redirect(url_for('questionselected', semesterName = semestername, courseName = coursename))
+		for q in questions:
+			if request.form[q] != NULL:
+				thisSurvey.addQuestion(q)
+
+
+		return redirect(url_for('questionselected'))
 	
-	#Else, read from the question list into the CSV, and display these onto the screen as checkboxes
-	elif request.method == "GET":
-		question_list = []
-		with open('questionList.csv','r') as csv_in:
-			for row in csv.reader(csv_in):
-				question_list.append(row[0])
-		return render_template('choosequestions.html', questions = question_list)
+	#Else, get questionlist from pool, and display these onto the screen as checkboxes
+	else:
+		return render_template('choosequestions.html', questions = allQuestions.getQuestionList())
 
 
 #PAGE AFTER SELECTING QUESTIONS

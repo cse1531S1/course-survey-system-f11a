@@ -6,8 +6,8 @@ class Authentication(object):
 		self._dbName = "Users.db"
 	
 	#Given a username/password, checks to see if it's a legit combination
-	def IsValidUser(username, password):
-		if(username == "admin" & pasword == "admin"):
+	def IsValidUser(self, username, password):
+		if(username == "admin" and pasword == "admin"):
 			return True
 		else:
 			writer = SQLWriter()
@@ -18,7 +18,7 @@ class Authentication(object):
 		return False
 
 	#Given a username, will return a user object
-	def LoginUser(username):
+	def LoginUser(self, username):
 		newUser = User(0)
 		if(username == "admin"):
 			return newUser
@@ -48,7 +48,6 @@ class Authentication(object):
 			for row in reader:
 				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
 				writer.dbinsert(query)
-				
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
@@ -63,41 +62,41 @@ class User(object):
 		self._notCompletedSurveys = []
 		self._closedSurveys = []
 
-	def addCourse(newCourse):
-		self._courses.append(newCourse)
-		self._notCompletedSurveys.append(newCourse.getCourseID()) #NOTE: getCourseID not defined
+	def addCourse(self,courseID):
+		self._courses.append(courseID)
+		self._notCompletedSurveys.append(courseID)
 
-	def addClosedSurveys(courseID):
+	def addClosedSurveys(self,courseID):
 		self._closedSurveys.append(course)
 
 	#Given a course ID, add it to the list of closed surveys
-	def nowCompleted(courseID):
+	def nowCompleted(self,courseID):
 		for course in self._notCompletedSurveys:
 			if(course == courseID):
 				self._notCompletedSurveys.remove(course)
 
-	def getPermission():
+	def getPermission(self):
 		return self._permLevel		
 
-	def getCourses():
+	def getCourses(self):
 		return self._courses
 
-	def getNotCompleted():
+	def getNotCompleted(self):
 		return _notCompletedSurveys
 
-	def getClosedSurveys():
+	def getClosedSurveys(self):
 		return _closedSurveys
 
-	def setPermission(newPermLevel):
+	def setPermission(self,newPermLevel):
 		self._permLevel = newPermLevel
 
-	def setCourses(courseList):
+	def setCourses(self,courseList):
 		self._courses = courseList
 
-	def setNotCompletedSurveys(newUntouchedSurveys):
+	def setNotCompletedSurveys(self,newUntouchedSurveys):
 		self._notCompletedSurveys = newUntouchedSurveys
 
-	def setClosedSurveys(newClosedSurveys):
+	def setClosedSurveys(self,newClosedSurveys):
 		self._closedSurveys = newClosedSurveys
 
 class SurveyPool(object):
@@ -108,39 +107,40 @@ class SurveyPool(object):
 		self._stage = 0
 		self._usersWhoHaveCompleted = []
 
-	def getSurvey(surveyID):
+	def getSurvey(self,surveyID):
 		retVal = None
 		for survey in self._surveys:
-			if(survey.getSurveyID() == surveyID):			#NOTE:getSurveyID is not defined
+			if(survey.getSurveyID() == surveyID):
 				retVal = survey
 		return retVal
 
-	def addSurvey(survey):
-		self._surveys.append(survey)
+	def addSurvey(self,surveyName):
+		newSurvey = Survey(surveyName, self.getIDCounter())
+		self._surveys.append(newSurvey)
 		writer = SQLWriter()
-		query = "INSERT INTO Surveys VALUES %s" % (survey.getCourseName())
-		writer.dbinsert(query)
-
-	def deleteSurvey(surveyID):
+		query = "INSERT INTO Surveys VALUES %s" % (surveyName)
+		writer.dbinsert(query, self._dbName)
+		return newSurvey
+		
+	def deleteSurvey(self,surveyID):
 		for survey in self._surveys:
 			if(survey.getSurveyID() == surveyID):
 				self._surveys.remove(survey)
 
-	def generatePool():
+	def generatePool(self):
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
-				newSurvey = Survey(str(item), self._idCounter)
-				self._idCounter+=1
+				newSurvey = Survey(str(item), self.getIDCounter())
 				newSurvey.generateQuestions()
 				newSurvey.responseList.generatePool()
 
 	def getSurveyList(self):
 		return self._surveys
 
-	def getIDCounter():
-		retVal = self._idCounter
+	def getIDCounter(self):
+		retVal = self._idCounter				#NOTE: id is incremented after retriving, not after addSurvey?
 		self._idCounter+=1
 		return retVal
 
@@ -150,14 +150,14 @@ class QuestionPool(object):
 		self._questions = []
 		self._questionCounter = 0
 
-	def getQuestion(questionID):
+	def getQuestion(self,questionID):
 		retVal = None
 		for question in self._questions:
 			if(question.getQuestionID() == questionID):
 				retVal = question
 		return retVal
 
-	def deleteQuestion(questionID):
+	def deleteQuestion(self,questionID):
 		for question in self._questions:
 			if(question.getQuestionID() == questionID):
 				self._questions.remove(question)
@@ -167,7 +167,7 @@ class QuestionPool(object):
 		self._questions.append(q)
 		self._questionCounter+=1
 		writer = SQLWriter()
-		query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, qString, answerType, isMandatory)
+		query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, isMandatory, answerType, qString)
 		writer.dbinsert(query, self.dbName)	
 
 	def generatePool(self):
@@ -188,7 +188,7 @@ class QuestionPool(object):
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self._questions:
-			query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getQuestionString(), q.getAnswerType(), q.getIsMandatory())
+			query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
@@ -197,7 +197,7 @@ class QuestionPool(object):
 		self._questions = []
 		self._questionCounter = 0
 
-	def getQuestionList():
+	def getQuestionList(self):
 		return self._questions
 
 class ResponsePool(object):
@@ -207,7 +207,7 @@ class ResponsePool(object):
 		self._responses = []
 
 	#Given a response list, add it to the database and the pool
-	def addResponse(responseList):
+	def addResponse(self,responseList):
 		newResponse = Response(responseList, self._currentID)
 		self._currentID+=1
 		writer = SQLWriter()
@@ -223,14 +223,14 @@ class ResponsePool(object):
 		writer.dbinsert(query, self._dbName)
 		self._responses.append(newResponse)
 
-	def getResponse(responseID):
+	def getResponse(self,responseID):
 		retVal = None
 		for resp in self._responses:
 			if(resp.getResponseID() == responseID):
 				retVal = resp
 		return retVal
 
-	def deleteResponse(responseID):
+	def deleteResponse(self,responseID):
 		for resp in self._responses:
 			if(resp.getResponseID() == responseID):
 				self._responses.remove(resp)
@@ -252,17 +252,19 @@ class ResponsePool(object):
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self.responses:
+			#THe fuck is this line
 			query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getQuestionString(), q.getAnswerType(), q.getIsMandatory())
 			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
 		writer = SQLWriter()
+		#The fuck is this line
 		query = "DELETE * FROM Questions"
 		writer.dbinsert(query, self._dbName)
 		self._responses = []
 		self._currentID = 0
 
-	def getResponseList():
+	def getResponseList(self):
 		return self._responses
 
 class Survey(object):
@@ -275,6 +277,9 @@ class Survey(object):
 	
 	def getCourseName(self):
 		return self._coursename
+
+	def getSurveyID(self):
+		return self._uniqueID
 
 	#Given a question, add the question ID to the pool
 	def addQuestion(self, q):
@@ -312,7 +317,7 @@ class Survey(object):
 			if retVal == []:
 				break
 			else:
-				self._questions.append(int(retVal))			#NOTE:_questions is part of Questions, should have an appendquestion() function
+				self._questions.append(int(retVal))
 			i+=1
 
 	def generateResponses(self):
@@ -332,16 +337,16 @@ class Question(object):
 		self._answerType = answerType
 		self._isMandatory = isMandatory
 
-	def getQuestionID():
+	def getQuestionID(self):
 		return self._questionID
 
-	def getQuestionString():
+	def getQuestionString(self):
 		return self._question
 
-	def getAnswerType():
+	def getAnswerType(self):
 		return self._answerType
 
-	def getIsMandatory():
+	def getIsMandatory(self):
 		return self._isMandatory
 
 class Response(object):
@@ -349,16 +354,16 @@ class Response(object):
 		self._responses = responses
 		self._responseID = ID
 
-	def getResponse():
+	def getResponse(self):
 		return self._responses
 
-	def setResponse(newResponseList):
+	def setResponse(self,newResponseList):
 		self._responses = newResponseList
 
-	def addResponse(newResponse):
+	def addResponse(self,newResponse):
 		self._responses.append(newResponse)
 
-	def getResponseID():
+	def getResponseID(self):
 		return self._responseID
 
 class SQLWriter(object):
@@ -386,13 +391,4 @@ class SQLWriter(object):
 		retVal = cursorObj.execute(query)
 		connection.commit()
 		cursorObj.close()
-		return retVal
-
-class CSVWriter(object):				#NOTE: compiler giving error for FileWriter
-	def readFromCSV(filename):
-		retVal = []
-		with open('%s' % (filename) , 'r') as csv_in:
-			reader = csv.reader(csv_in)
-			for row in reader:
-				retVal.append(row)
 		return retVal
