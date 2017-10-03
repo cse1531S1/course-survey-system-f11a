@@ -40,8 +40,9 @@ class Authentication(object):
 			#Return user object
 			return newUser
 
-	#Fill in the Users table
+	#Fill in the Users table - First, we want to zero it
 	def buildUserBase(self):
+		self.clearUserBase()
 		writer = SQLWriter()
 		with open('passwords.csv', 'r') as csv_in:
 			reader = csv.reader(csv_in)
@@ -51,8 +52,15 @@ class Authentication(object):
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
-				query = "INSERT INTO Enrolmenents VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
+				query = "INSERT INTO Enrolments VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
 				writer.dbinsert(query, self._dbName)
+
+	def clearUserBase(self):
+		writer = SQLWriter()
+		query = "DELETE * FROM Passwords"
+		writer.dbselect(query, self._dbName)
+		query = "DELETE * FROM Enrolments"
+		writer.dbselect(query, self._dbName)
 
 class User(object):
 	def __init__(self, permLevel):
@@ -104,8 +112,6 @@ class SurveyPool(object):
 		self._dbName = "InitData.db"
 		self._surveys = []
 		self._idCounter = 0
-		self._stage = 0
-		self._usersWhoHaveCompleted = []
 
 	def getSurveyByID(self,surveyID):
 		retVal = None
@@ -135,6 +141,7 @@ class SurveyPool(object):
 				self._surveys.remove(survey)
 
 	def generatePool(self):
+		self.clearPool()
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
@@ -150,6 +157,13 @@ class SurveyPool(object):
 		retVal = self._idCounter
 		self._idCounter+=1
 		return retVal
+
+	def clearPool(self):
+		writer = SQLWriter()
+		query = "DELETE * FROM Surveys"
+		writer.dbselect(query, self._dbName)
+		self._surveys = []
+		self._idCounter = 0
 
 class QuestionPool(object):
 	def __init__(self):
@@ -178,6 +192,7 @@ class QuestionPool(object):
 		writer.dbinsert(query, self.dbName)	
 
 	def generatePool(self):
+		self.clearPool()
 		writer = SQLWriter()
 		i = 0
 		while True:
@@ -199,8 +214,9 @@ class QuestionPool(object):
 			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
+		writer = SQLWriter()
 		query = "DELETE * FROM Questions"
-		SQLWriter.dbselect(query)
+		writer.dbselect(query)
 		self._questions = []
 		self._questionCounter = 0
 
@@ -243,6 +259,7 @@ class ResponsePool(object):
 				self._responses.remove(resp)
 
 	def generatePool(self):
+		self.clearPool()
 		writer = SQLWriter()
 		i = 0
 		while True:
@@ -256,23 +273,15 @@ class ResponsePool(object):
 				self._responses.append(newResp)
 			i+=1
 
-	def storePool(self):
-		writer = SQLWriter()
-		for q in self.responses:
-			#THe fuck is this line
-			query = "INSERT INTO Questions (QID, QString, AnswerType, IsMandatory) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getQuestionString(), q.getAnswerType(), q.getIsMandatory())
-			writer.dbinsert(query, self._dbName)
+	def getResponseList(self):
+		return self._responses
 
 	def clearPool(self):
 		writer = SQLWriter()
-		#The fuck is this line
-		query = "DELETE * FROM Questions"
-		writer.dbinsert(query, self._dbName)
+		query = "DELETE * FROM Responses"
+		writer.dbselect(query)
 		self._responses = []
 		self._currentID = 0
-
-	def getResponseList(self):
-		return self._responses
 
 class Survey(object):
 	def __init__(self, coursename, uniqueID):
