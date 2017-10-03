@@ -46,12 +46,12 @@ class Authentication(object):
 		with open('passwords.csv', 'r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
-				query = "INSERT INTO Passwords VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
+				query = "INSERT INTO Passwords(ZID, PASSWORD, ROLE) VALUES ('%s','%s','%s')" % (str(row[0]), str(row[1]),str(row[2]))
 				writer.dbinsert(query, self._dbName)
 		with open('enrolments.csv','r') as csv_in:
 			reader = csv.reader(csv_in)
 			for row in reader:
-				query = "INSERT INTO Enrolmenents VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
+				query = "INSERT INTO Enrolmenents(ZID, COURSE) VALUES ('%s','%s')" % (str(row[0]), (str(row[1])+str(row[2])))
 				writer.dbinsert(query, self._dbName)
 
 class User(object):
