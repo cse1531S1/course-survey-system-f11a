@@ -1,15 +1,13 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, question_list, surveyList
-from classes import Survey, Question
+from server import app, question_list, surveyList, authenticate
+from classes import Survey, Question, Authentication
 import csv
 
-authenticate = Authentication()
+
 
 #LOGIN PAGE
-@app.route('/login', methods=["GET","POST"])
+@app.route('/', methods=["GET","POST"])
 def login():
-	#create database of all users
-	authenticate.buildUserBase() 
 	error = None
 	if request.method == 'POST':
 		#check for user against database
