@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, question_list
-from classes import Authentication, SurveyPool, QuestionPool
+from server import app, question_list, surveyList
+from classes import Survey, Question
 import csv
 
 authenticate = Authentication()
@@ -172,10 +172,6 @@ def survey(semestername, coursename):
 	if request.method == 'POST':
 		answerList = []
 		for question in rightSurvey.getQuestions():
-			#print("What we're trying to get is: ")
-			#print(question.getQuestionName())
-			#print(request.form.get(question.getQuestionName()))
-			#For some reason, request.form.get(question) is empty
 			if request.form.get(question.getQuestionName()):
 				answerList.append(request.form.get(question.getQuestionName()))
 		newDataObj = Data(answerList)

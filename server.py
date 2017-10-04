@@ -1,11 +1,9 @@
 from flask import Flask
-from classes import SurveyPool, QuestionPool
+from classes import SurveyPool
 
 app = Flask(__name__)
 question_list = []
 
-allSurveys = SurveyPool()
-allSurveys.generatePool()
+surveyList = SurveyPool()
+surveyList.generatePool()
 
-allQuestions = QuestionPool()
-allQuestions.generatePool()
