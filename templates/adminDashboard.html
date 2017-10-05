@@ -40,6 +40,14 @@
 	
 	<h3>Questions In The System</h3>
 	
+	{% if qlist %}
+	    {% for q in qlist %}
+	        {{ q }}
+	    {% endfor %}
+	
+	{% else %}
+	No questions have been added.
+	{% endif %}
 
 <!-- Page content -->
 
