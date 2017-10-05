@@ -7,7 +7,7 @@ class Authentication(object):
 	
 	#Given a username/password, checks to see if it's a legit combination
 	def IsValidUser(self, username, password):
-		if(username == "admin" and pasword == "admin"):
+		if(username == "admin" and password == "admin"):
 			return True
 		else:
 			writer = SQLWriter()

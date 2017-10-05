@@ -1,5 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, question_list, surveyList, authenticate
+from server import app, allQuestions, surveyList, authenticate
 from classes import Survey, Question, Authentication
 import csv
 
