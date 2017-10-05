@@ -7,7 +7,7 @@ class Authentication(object):
 	
 	#Given a username/password, checks to see if it's a legit combination
 	def IsValidUser(self, username, password):
-		if(username == "admin" and pasword == "admin"):
+		if(username == "admin" and password == "admin"):
 			return True
 		else:
 			writer = SQLWriter()
@@ -57,10 +57,10 @@ class Authentication(object):
 
 	def clearUserBase(self):
 		writer = SQLWriter()
-		query = "DELETE * FROM Passwords"
-		writer.dbselect(query, self._dbName)
-		query = "DELETE * FROM Enrolments"
-		writer.dbselect(query, self._dbName)
+		query = "DELETE FROM Passwords"
+		writer.dbinsert(query, self._dbName)
+		query = "DELETE FROM Enrolments"
+		writer.dbinsert(query, self._dbName)
 
 class User(object):
 	def __init__(self, permLevel):
@@ -160,8 +160,8 @@ class SurveyPool(object):
 
 	def clearPool(self):
 		writer = SQLWriter()
-		query = "DELETE * FROM Surveys"
-		writer.dbselect(query, self._dbName)
+		query = "DELETE FROM Surveys"
+		writer.dbinsert(query, self._dbName)
 		self._surveys = []
 		self._idCounter = 0
 
@@ -215,8 +215,8 @@ class QuestionPool(object):
 
 	def clearPool(self):
 		writer = SQLWriter()
-		query = "DELETE * FROM Questions"
-		writer.dbselect(query)
+		query = "DELETE FROM Questions"
+		writer.dbinsert(query)
 		self._questions = []
 		self._questionCounter = 0
 
@@ -278,8 +278,8 @@ class ResponsePool(object):
 
 	def clearPool(self):
 		writer = SQLWriter()
-		query = "DELETE * FROM Responses"
-		writer.dbselect(query)
+		query = "DELETE FROM Responses"
+		writer.dbinsert(query)
 		self._responses = []
 		self._currentID = 0
 
@@ -341,7 +341,7 @@ class Survey(object):
 
 	def resetSurvey(self):
 		writer = SQLWriter()
-		query = "DELETE * FROM Questions"
+		query = "DELETE FROM Questions"
 		writer.dbinsert(query, self._dbName)
 		self._questionList = []
 		self._responsePool.clearPool()
@@ -395,14 +395,14 @@ class SQLWriter(object):
 		return results #We're done
 
 	def dbinsert(self, query, dbName):
-		connection = sqlite3.conect(dbName)
+		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		cursorObj.execute(query)
 		connection.commit()
 		cursorObj.close()
 
 	def dbGetRows(self, query, dbName):
-		connection = sqlite3.conect(dbName)
+		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		retVal = cursorObj.execute(query)
 		connection.commit()
