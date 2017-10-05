@@ -7,5 +7,4 @@ question_list = []
 surveyList = SurveyPool()
 surveyList.generatePool()
 authenticate = Authentication()
-authenticate.buildUserBase() 
 allQuestions = QuestionPool()
