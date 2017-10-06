@@ -205,6 +205,7 @@ class QuestionPool(object):
 				self._questions.append(newq)
 				if int(retVal[0]) > self._questionCounter:
 					self._questionCounter = int(retVal[0])
+					self._questionCounter +=1
 			i+=1
 
 	def storePool(self):

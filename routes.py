@@ -76,7 +76,7 @@ def addquestions():
 #ADDED QUESTIONS PAGE
 @app.route('/admin/addedQuestions')
 def addedquestions():
-    return render_template('adminSurveySubmitted.html')
+    return render_template('addedQuestion.html')
     
 
 #QUESTION LIST PAGE
@@ -93,7 +93,7 @@ def questionlist():
 
     #need to ask about delete question interface
 
-    return render_template('addedQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
+    return render_template('allQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
 
 
 #NEW SURVEY PAGE goes to /addSurvey
