@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Added Questions</title>
+<title>All Questions</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -35,12 +35,35 @@
 
 <!-- Page content -->
 
-	<h1> You have succesfully created a new question</h1>
+	<h1> All Questions</h1>
+
+	<form action="" method="post">
 	
-	<a href="/admin/addQuestion" class="w3-bar-item w3-button">Add Another Question</a>
-	<a href="/admin/dashboard" class="w3-bar-item w3-button w3-right">Return To Dashboard</a> 
+    	<h3> Mandatory Questions include</h3>
+	    
+    	{% if optionalq %}
+	        {% for q in optionalq %}
+	            {{ q }}         
+	            <input class="btn btn-default" type="submit" value=q text="REMOVE"><br>
+	        {% endfor %}
+	    {% endif %}
 	
+	    <h3> Optional Questions include</h3>
 	
+	    {% if mandatoryq %}
+	        {% for q in mandatoryq %}
+	            {{ q }} <br>
+	        {% endfor %}
+	    {% endif %}	
+	
+	</form>
 
 </body>
 </html>
+
+
+
+
+
+
+
