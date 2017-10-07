@@ -1,5 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
-from server import app, allQuestions, surveyList, authenticate
+from server import app, allQuestions, allSurveys, authenticate
 from classes import Survey, Question, Authentication
 import csv
 
@@ -33,7 +33,11 @@ def login():
 def admindashboard():
 	#need live survey forms, survey to be reviewed, questions in the system
 	qlist = allQuestions.getQuestionList()
-	return render_template('adminDashboard.html', qlist = qlist)
+	questionlist = []
+	for q in qlist:
+		questionlist.append(q.getQuestionString())
+
+	return render_template('adminDashboard.html', qlist = questionlist)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
@@ -65,7 +69,9 @@ def addquestions():
             etype = 1
             if qtype == "optional":
             	qtype = 0
+            	print("Optionalq")
             if etype == "text":
+            	print("textresp")
             	etype = 0
 
             allQuestions.addQuestion(question, etype, qtype)
@@ -86,10 +92,11 @@ def questionlist():
     optionalq = []
     mandatoryq = []
     for q in qlist:
-    	if q.getIsMandatory():
-    		mandatoryq.append(q)
+    	print(q.getQuestionString())
+    	if q.getIsMandatory() == 1:
+    		mandatoryq.append(q.getQuestionString())
     	else:
-    		optionalq.append(q)
+    		optionalq.append(q.getQuestionString())
 
     #need to ask about delete question interface
 
@@ -114,7 +121,7 @@ def newsurvey():
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
-		surveyname = semestername+coursename
+		surveyname = coursename+semestername
 		allSurveys.addSurvey(surveyname)
 
 		thisSurvey = allSurveys.getSurveyByName(surveyname);
@@ -128,7 +135,11 @@ def courseObject(semestername, coursename):
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
-		return render_template('choosequestions.html', questions = allQuestions.getQuestionList())
+		qlist = allQuestions.getQuestionList()
+		questions = []
+		for q in qlist:
+			questions.append(q.getQuestionString())
+		return render_template('choosequestions.html', questions = questions)
 
 
 #PAGE AFTER SELECTING QUESTIONS

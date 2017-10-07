@@ -188,8 +188,7 @@ class QuestionPool(object):
 		self._questions.append(q)
 		self._questionCounter+=1
 		writer = SQLWriter()
-		query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, isMandatory, answerType, qString)
-		writer.dbinsert(query, self._dbName)	
+		writer.dbinsertq(self._dbName, self._questionCounter, answerType, isMandatory, qString)	
 
 	def generatePool(self):
 		self.clearPool()
@@ -211,13 +210,13 @@ class QuestionPool(object):
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self._questions:
-			query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
+			write.dbinsertq(self._dbName, q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
 		writer = SQLWriter()
 		query = "DELETE FROM Questions"
-		writer.dbinsert(query)
+		writer.dbinsert(query, self._dbName)
 		self._questions = []
 		self._questionCounter = 0
 
@@ -399,6 +398,13 @@ class SQLWriter(object):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
+
+	def dbinsertq(self, dbName, qid, mc, man, qstr):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute("INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?, ?)", (qid, mc, man, qstr))
 		connection.commit()
 		cursorObj.close()
 

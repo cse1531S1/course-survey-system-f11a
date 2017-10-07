@@ -4,7 +4,8 @@ from classes import SurveyPool, Authentication, QuestionPool
 app = Flask(__name__)
 question_list = []
 
-surveyList = SurveyPool()
-surveyList.generatePool()
+allSurveys = SurveyPool()
+allSurveys.generatePool()
 authenticate = Authentication()
 allQuestions = QuestionPool()
+allQuestions.generatePool()
