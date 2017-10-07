@@ -61,20 +61,20 @@ def addquestions():
         question = request.form['q']
         qtype = request.form['questionType']
         etype = request.form['entryType']
+
         if(question == ""):
             submitted = "Please enter your question into the box!"
+            return render_template('addQuestion.html', status = submitted)
         else:
             #default values: mandatory, MCQ
-            qtype = 1
-            etype = 1
+            questiontype = 1
+            entrytype = 1
             if qtype == "optional":
-            	qtype = 0
-            	print("Optionalq")
+            	questiontype = 0
             if etype == "text":
-            	print("textresp")
-            	etype = 0
+            	entrytype = 0
 
-            allQuestions.addQuestion(question, etype, qtype)
+            allQuestions.addQuestion(question, entrytype, questiontype)
 
         return redirect(url_for('addedquestions'))
     return render_template('addQuestion.html', status = submitted)
@@ -92,7 +92,6 @@ def questionlist():
     optionalq = []
     mandatoryq = []
     for q in qlist:
-    	print(q.getQuestionString())
     	if q.getIsMandatory() == 1:
     		mandatoryq.append(q.getQuestionString())
     	else:
@@ -103,7 +102,7 @@ def questionlist():
     return render_template('allQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
 
 
-#NEW SURVEY PAGE goes to /addSurvey
+#NEW SURVEY PAGE
 @app.route('/admin/chooseSession') 
 def newsurvey():
 	courses_list = get_list_of_courses()
@@ -120,10 +119,12 @@ def newsurvey():
 @app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
+	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		print("recognised",surveyname)
 		allSurveys.addSurvey(surveyname)
-
+		print("survey added")
 		thisSurvey = allSurveys.getSurveyByName(surveyname);
 
 		for q in questions:
@@ -136,9 +137,10 @@ def courseObject(semestername, coursename):
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
 		qlist = allQuestions.getQuestionList()
-		questions = []
+		
 		for q in qlist:
-			questions.append(q.getQuestionString())
+			if q.getIsMandatory():
+				questions.append(q.getQuestionString())
 		return render_template('choosequestions.html', questions = questions)
 
 

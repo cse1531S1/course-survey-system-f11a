@@ -128,11 +128,12 @@ class SurveyPool(object):
 		return retVal
 
 	def addSurvey(self,surveyName):
+		print("surveyName",surveyName)
 		newSurvey = Survey(surveyName, self.getIDCounter())
+		print("New survey:",newSurvey.getCourseName())
 		self._surveys.append(newSurvey)
 		writer = SQLWriter()
-		query = "INSERT INTO Surveys VALUES %s" % (surveyName)
-		writer.dbinsert(query, self._dbName)
+		writer.dbinserts(self._dbName, surveyName)
 		return newSurvey
 		
 	def deleteSurvey(self,surveyID):
@@ -398,6 +399,13 @@ class SQLWriter(object):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
+
+	def dbinserts(self, dbName, surveyname):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute("INSERT INTO Surveys VALUES (?)", (surveyname,))
 		connection.commit()
 		cursorObj.close()
 
