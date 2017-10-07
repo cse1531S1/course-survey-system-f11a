@@ -128,9 +128,7 @@ class SurveyPool(object):
 		return retVal
 
 	def addSurvey(self,surveyName):
-		print("surveyName",surveyName)
 		newSurvey = Survey(surveyName, self.getIDCounter())
-		print("New survey:",newSurvey.getCourseName())
 		self._surveys.append(newSurvey)
 		writer = SQLWriter()
 		writer.dbinserts(self._dbName, surveyName)
@@ -169,7 +167,7 @@ class SurveyPool(object):
 class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
-		self._questions = []
+		self._questions = [] #list of question objects
 		self._questionCounter = 0
 
 	def getQuestion(self,questionID):
@@ -291,6 +289,8 @@ class Survey(object):
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
+		self._stage = 0 #stage0 = after creation, to be approved, 1 = live, 2 = closed.
+
 	
 	def getCourseName(self):
 		return self._coursename
@@ -324,6 +324,12 @@ class Survey(object):
 	#Returns the current list of response objects
 	def getResponses(self):
 		return self._responsePool.getResponses()
+
+	def setStage(self, stage):
+		self._stage = stage
+
+	def getStage(self):
+		return self._stage
 
 	def generateQuestions(self):
 		writer = SQLWriter()

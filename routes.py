@@ -33,22 +33,30 @@ def login():
 def admindashboard():
 	#need live survey forms, survey to be reviewed, questions in the system
 	slist = allSurveys.getSurveyList()
-	surveylist = []
-	for s in slist:
-		surveylist.append(s.getCourseName())
-	qlist = allQuestions.getQuestionList()
+	tobereviewed = []
+	slive = []
 	questionlist = []
+	
+	for s in slist:
+		if s.getStage() == 0:
+			tobereviewed.append(s.getCourseName())
+		if s.getStage() == 1:
+			slive.append(s.getCourseName())
+
+	qlist = allQuestions.getQuestionList()
+	
 	for q in qlist:
 		questionlist.append(q.getQuestionString())
 
-	return render_template('adminDashboard.html', qlist = questionlist, slist = surveylist)
+	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
-	return render_template('staffDashboard.html')
+	slist = currentuser.getNotCompleted()
+	return render_template('staffDashboard.html', slist = slist)
 
-#ADMIN DASHBOARD
+#STUDENT DASHBOARD
 @app.route('/student/dashboard')
 def studentdashboard():
 	return render_template('studentDashboard.html')
@@ -126,9 +134,7 @@ def courseObject(semestername, coursename):
 	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
-		print("recognised",surveyname)
 		allSurveys.addSurvey(surveyname)
-		print("survey added")
 		thisSurvey = allSurveys.getSurveyByName(surveyname);
 
 		for q in questions:
@@ -162,11 +168,31 @@ def questionselected():
 	else:
 		return render_template('adminSurveySubmitted.html')   
     
-#List of surveys page
-@app.route('/staff/reviewSurvey')
+#choose optional questions
+@app.route('/staff/reviewSurvey/<semestername>/<coursename>')
 def reviewSurvey():
-	# This function gives the webpage a list of surveys via he SurveyPool object
-   return render_template('reviewSurvey.html', SurveyList = surveyList.getSurveyList())
+	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)
+	allqinsurvey = thisSurvey.getQuestions() #list of questionids
+	allq = allQuestions.getQuestionList()
+	questionlist = []
+	optionallist = []
+
+	#find out all mandatory questions for this survey
+	for q in allqinsurvey:
+		questionlist.append(allQuestions.getQuestion(q))
+
+	#pick all optional questions
+	for oq in allq:
+		if oq.getIsMandatory() == 0:
+			optionallist.append(oq)
+
+	if request.method == 'POST':
+		for q in opqlist:
+			if request.form[q] != NULL:
+				thisSurvey.addQuestion(q)
+
+		return redirect(url_for('finishedReview'))
+	return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
    
 
 #REVIEW FINISHED
