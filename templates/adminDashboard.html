@@ -16,12 +16,20 @@
 	<h3>Live Survey Forms</h3>
 	
 	<h3>Survey Forms To Be Reviewed</h3>
+	{% if slist %}
+	    {% for s in slist %}
+	        {{ s }}<br>
+	    {% endfor %}
+	
+	{% else %}
+	No surveys have been added.
+	{% endif %}
 	
 	<h3>Questions In The System</h3>
 	
 	{% if qlist %}
 	    {% for q in qlist %}
-	        {{ q }}
+	        {{ q }}<br>
 	    {% endfor %}
 	
 	{% else %}

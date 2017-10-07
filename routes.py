@@ -32,12 +32,16 @@ def login():
 @app.route('/admin/dashboard')
 def admindashboard():
 	#need live survey forms, survey to be reviewed, questions in the system
+	slist = allSurveys.getSurveyList()
+	surveylist = []
+	for s in slist:
+		surveylist.append(s.getCourseName())
 	qlist = allQuestions.getQuestionList()
 	questionlist = []
 	for q in qlist:
 		questionlist.append(q.getQuestionString())
 
-	return render_template('adminDashboard.html', qlist = questionlist)
+	return render_template('adminDashboard.html', qlist = questionlist, slist = surveylist)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
@@ -156,7 +160,7 @@ def questionselected():
 			return redirect(url_for("admindashboard"))
 			
 	else:
-		return render_template('surveySubmitted.html')   
+		return render_template('adminSurveySubmitted.html')   
     
 #List of surveys page
 @app.route('/staff/reviewSurvey')
