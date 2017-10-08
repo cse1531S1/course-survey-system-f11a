@@ -11,8 +11,7 @@ class Authentication(object):
 			return True
 		else:
 			writer = SQLWriter()
-			query = "SELECT * FROM Passwords WHERE ZID = %s AND PASSWORD = %s" % (username, password)
-			valid = writer.dbselect(query, self._dbName)
+			valid = writer.selectuser(self._dbName, (username, password))
 			if (valid != []):
 				return True
 		return False
@@ -25,18 +24,14 @@ class Authentication(object):
 		else:
 			writer = SQLWriter()
 			#Set permissions
-			query = "SELECT * FROM Passwords WHERE ZID = %s" % (username)
-			response = writer.dbselect(query, self._dbName)
-			if(response[2] == "staff"):
+			response = writer.selectid(self._dbName, 'Passwords',(username,))
+			if(response[0][2] == "staff"):
 				newUser.setPermission(1)
 			else:
 				newUser.setPermission(2)
 			#Set courses
-			query = "SELECT * FROM Enrolments WHERE ZID = %s" % (username)
-			response = writer.dbselect(query, self._dbName)
-			for item in response:
-				stringToAdd = item[1] + item[2]
-				newUser.addCourse(stringToAdd)
+			response = writer.selectid(self._dbName, 'Enrolments',(username,))
+			newUser.addCourse(response[0][1])
 			#Return user object
 			return newUser
 
@@ -90,10 +85,10 @@ class User(object):
 		return self._courses
 
 	def getNotCompleted(self):
-		return _notCompletedSurveys
+		return self._notCompletedSurveys
 
 	def getClosedSurveys(self):
-		return _closedSurveys
+		return self._closedSurveys
 
 	def setPermission(self,newPermLevel):
 		self._permLevel = newPermLevel
@@ -131,8 +126,7 @@ class SurveyPool(object):
 		newSurvey = Survey(surveyName, self.getIDCounter())
 		self._surveys.append(newSurvey)
 		writer = SQLWriter()
-		query = "INSERT INTO Surveys VALUES %s" % (surveyName)
-		writer.dbinsert(query, self._dbName)
+		writer.dbinserts(self._dbName, surveyName)
 		return newSurvey
 		
 	def deleteSurvey(self,surveyID):
@@ -168,7 +162,7 @@ class SurveyPool(object):
 class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
-		self._questions = []
+		self._questions = [] #list of question objects
 		self._questionCounter = 0
 
 	def getQuestion(self,questionID):
@@ -188,8 +182,7 @@ class QuestionPool(object):
 		self._questions.append(q)
 		self._questionCounter+=1
 		writer = SQLWriter()
-		query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, isMandatory, answerType, qString)
-		writer.dbinsert(query, self._dbName)	
+		writer.dbinsertq(self._dbName, self._questionCounter, answerType, isMandatory, qString)	
 
 	def generatePool(self):
 		self.clearPool()
@@ -205,18 +198,19 @@ class QuestionPool(object):
 				self._questions.append(newq)
 				if int(retVal[0]) > self._questionCounter:
 					self._questionCounter = int(retVal[0])
+					self._questionCounter +=1
 			i+=1
 
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self._questions:
-			query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
+			write.dbinsertq(self._dbName, q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 			writer.dbinsert(query, self._dbName)
 
 	def clearPool(self):
 		writer = SQLWriter()
 		query = "DELETE FROM Questions"
-		writer.dbinsert(query)
+		writer.dbinsert(query, self._dbName)
 		self._questions = []
 		self._questionCounter = 0
 
@@ -290,6 +284,8 @@ class Survey(object):
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
+		self._stage = 0 #stage0 = after creation, to be approved, 1 = live, 2 = closed.
+
 	
 	def getCourseName(self):
 		return self._coursename
@@ -323,6 +319,12 @@ class Survey(object):
 	#Returns the current list of response objects
 	def getResponses(self):
 		return self._responsePool.getResponses()
+
+	def setStage(self, stage):
+		self._stage = stage
+
+	def getStage(self):
+		return self._stage
 
 	def generateQuestions(self):
 		writer = SQLWriter()
@@ -394,10 +396,42 @@ class SQLWriter(object):
 		cursorObj.close() #Close cursor (like fclose)
 		return results #We're done
 
+	def selectuser(self, dbName, tupval):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute('SELECT * FROM Passwords WHERE ZID = (?) AND PASSWORD = (?)', tupval)
+		results = cursorObj.fetchall()
+		connection.commit()
+		cursorObj.close()
+		return results #We're done
+
+	def selectid(self, dbName, location, tupval):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute('SELECT * FROM %s WHERE ZID = (?)'%location, tupval)
+		results = cursorObj.fetchall()
+		connection.commit()
+		cursorObj.close() #Close cursor (like fclose)
+		return results #We're done		
+
 	def dbinsert(self, query, dbName):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
+
+	def dbinserts(self, dbName, surveyname):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute("INSERT INTO Surveys VALUES (?)", (surveyname,))
+		connection.commit()
+		cursorObj.close()
+
+	def dbinsertq(self, dbName, qid, mc, man, qstr):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute("INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?, ?)", (qid, mc, man, qstr))
 		connection.commit()
 		cursorObj.close()
 

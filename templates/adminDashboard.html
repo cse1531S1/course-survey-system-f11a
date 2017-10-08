@@ -14,14 +14,30 @@
 	<h1>Admin Dashboard</h1>
 	
 	<h3>Live Survey Forms</h3>
+	{% if slive %}
+	    {% for s in slive %}
+	        {{ s }}<br>
+	    {% endfor %}
+	
+	{% else %}
+	No surveys are live.
+	{% endif %}
 	
 	<h3>Survey Forms To Be Reviewed</h3>
+	{% if sreviewed %}
+	    {% for s in sreviewed %}
+	        {{ s }}<br>
+	    {% endfor %}
+	
+	{% else %}
+	No surveys have been added.
+	{% endif %}
 	
 	<h3>Questions In The System</h3>
 	
 	{% if qlist %}
 	    {% for q in qlist %}
-	        {{ q }}
+	        {{ q }}<br>
 	    {% endfor %}
 	
 	{% else %}
