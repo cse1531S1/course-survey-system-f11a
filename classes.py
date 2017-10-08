@@ -189,7 +189,7 @@ class QuestionPool(object):
 		self._questionCounter+=1
 		writer = SQLWriter()
 		query = "INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES ('%s', '%s', '%s', '%s')" % (self._questionCounter, isMandatory, answerType, qString)
-		writer.dbinsert(query, self.dbName)	
+		writer.dbinsert(query, self._dbName)	
 
 	def generatePool(self):
 		self.clearPool()
