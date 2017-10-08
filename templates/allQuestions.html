@@ -23,7 +23,7 @@
     	{% if optionalq %}
 	        {% for q in optionalq %}
 	            {{ q }}         
-	            <input class="btn btn-default" type="submit" value=q text="REMOVE"><br>
+	             <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
 	    {% endif %}
 	
@@ -31,7 +31,8 @@
 	
 	    {% if mandatoryq %}
 	        {% for q in mandatoryq %}
-	            {{ q }} <br>
+	            {{ q }} 
+	            <button type="button" value={{q}}>Remove</button><br><br>
 	        {% endfor %}
 	    {% endif %}	
 	

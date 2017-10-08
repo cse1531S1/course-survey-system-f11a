@@ -19,10 +19,16 @@
 	{% if questions %}
 		<Form method="POST">
 		{% autoescape false %}
-			{% for q in questions%}
+			{% for q in MCq%}
 				<p>
 				<input class = "w3-check" type="checkbox" name="{{q}}">
-				<label>{{q}}</label>
+				<label>{{q}} (Text based)</label>
+				</p>
+			{% endfor %}
+			{% for q in TEXTq%}
+				<p>
+				<input class = "w3-check" type="checkbox" name="{{q}}">
+				<label>{{q}} (Multiple choice)</label>
 				</p>
 			{% endfor %}
 			<button class=w3-button" type = "submit" name = "save">Save</button>      	

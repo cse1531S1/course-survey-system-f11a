@@ -167,10 +167,15 @@ def courseObject(semestername, coursename):
 	else:
 		qlist = allQuestions.getQuestionList()
 		
+		MCquestions= []
+		TEXTquestions = []
 		for q in qlist:
 			if q.getIsMandatory():
-				questions.append(q.getQuestionString())
-		return render_template('choosequestions.html', questions = questions)
+			    if q.getAnswerType():
+			        MCquestions.append(q.getQuestionString())
+			    else:
+				    TEXTquestions.append(q.getQuestionString())
+		return render_template('choosequestions.html', MCq = MCquestions, TEXTq = TEXTquestions)
 
 
 #PAGE AFTER SELECTING QUESTIONS
