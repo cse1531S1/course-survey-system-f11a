@@ -11,8 +11,7 @@ class Authentication(object):
 			return True
 		else:
 			writer = SQLWriter()
-			query = "SELECT * FROM Passwords WHERE ZID = %s AND PASSWORD = %s" % (username, password)
-			valid = writer.dbselect(query, self._dbName)
+			valid = writer.selectuser(self._dbName, (username, password))
 			if (valid != []):
 				return True
 		return False
@@ -25,18 +24,14 @@ class Authentication(object):
 		else:
 			writer = SQLWriter()
 			#Set permissions
-			query = "SELECT * FROM Passwords WHERE ZID = %s" % (username)
-			response = writer.dbselect(query, self._dbName)
-			if(response[2] == "staff"):
+			response = writer.selectid(self._dbName, 'Passwords',(username,))
+			if(response[0][2] == "staff"):
 				newUser.setPermission(1)
 			else:
 				newUser.setPermission(2)
 			#Set courses
-			query = "SELECT * FROM Enrolments WHERE ZID = %s" % (username)
-			response = writer.dbselect(query, self._dbName)
-			for item in response:
-				stringToAdd = item[1] + item[2]
-				newUser.addCourse(stringToAdd)
+			response = writer.selectid(self._dbName, 'Enrolments',(username,))
+			newUser.addCourse(response[0][1])
 			#Return user object
 			return newUser
 
@@ -90,10 +85,10 @@ class User(object):
 		return self._courses
 
 	def getNotCompleted(self):
-		return _notCompletedSurveys
+		return self._notCompletedSurveys
 
 	def getClosedSurveys(self):
-		return _closedSurveys
+		return self._closedSurveys
 
 	def setPermission(self,newPermLevel):
 		self._permLevel = newPermLevel
@@ -400,6 +395,24 @@ class SQLWriter(object):
 			results.append(row) #Append this to our list of tuples
 		cursorObj.close() #Close cursor (like fclose)
 		return results #We're done
+
+	def selectuser(self, dbName, tupval):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute('SELECT * FROM Passwords WHERE ZID = (?) AND PASSWORD = (?)', tupval)
+		results = cursorObj.fetchall()
+		connection.commit()
+		cursorObj.close()
+		return results #We're done
+
+	def selectid(self, dbName, location, tupval):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		cursorObj.execute('SELECT * FROM %s WHERE ZID = (?)'%location, tupval)
+		results = cursorObj.fetchall()
+		connection.commit()
+		cursorObj.close() #Close cursor (like fclose)
+		return results #We're done		
 
 	def dbinsert(self, query, dbName):
 		connection = sqlite3.connect(dbName)

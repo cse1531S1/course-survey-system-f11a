@@ -1,10 +1,9 @@
 from flask import Flask, redirect, render_template, request, url_for
 from server import app, allQuestions, allSurveys, authenticate
-from classes import Survey, Question, Authentication
+from classes import Survey, Question, Authentication, User
 import csv
 
-
-
+currentuser = User(0)
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
 def login():
@@ -15,6 +14,7 @@ def login():
 			error = 'Invalid Credentials. Please try again.'
 		else:
 			#determine type of user
+			global currentuser 
 			currentuser = authenticate.LoginUser(request.form['zID'])
 			if currentuser.getPermission() == 0:
 				return redirect(url_for('admindashboard'))
