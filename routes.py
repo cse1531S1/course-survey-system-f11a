@@ -53,13 +53,32 @@ def admindashboard():
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
-	slist = currentuser.getNotCompleted()
-	return render_template('staffDashboard.html', slist = slist)
+	usersurveys = currentuser.getNotCompleted()#list of courses assigned to staff
+	tobereviewed = []
+	for survey in usersurveys:
+		surveyobj = allSurveys.getSurveyByName(survey)
+
+		#if survey object exists for that course and it is in review phase
+		if surveyobj:
+			if surveyobj.getStage() == 0:
+				tobereviewed.append(surveyobj.getCourseName())
+
+	return render_template('staffDashboard.html', sreviewed = tobereviewed)
 
 #STUDENT DASHBOARD
 @app.route('/student/dashboard')
 def studentdashboard():
-	return render_template('studentDashboard.html')
+	usersurveys = currentuser.getNotCompleted()#list of courses assigned to student
+	tobeanswered = []
+	for survey in usersurveys:
+		surveyobj = allSurveys.getSurveyByName(survey)
+
+		#if survey object exists for that course and it is in review phase
+		if surveyobj:
+			if surveyobj.getStage() == 1:
+				tobeanswered.append(surveyobj.getCourseName())
+
+	return render_template('staffDashboard.html', sanswered = tobeanswered)
 
 
 #NEW QUESTIONS PAGE
@@ -128,7 +147,7 @@ def newsurvey():
 #need to change this to /admin/chooseQuestions depending on implementation. Look into HTML FORMS 
 #in tutorial: localhost/adminSurveyForm?choice=COMP2041+17s2
 
-@app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
+@app.route('/admin/chooseQuestions/<coursename>/<semestername>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	questions = []
@@ -169,27 +188,31 @@ def questionselected():
 		return render_template('adminSurveySubmitted.html')   
     
 #choose optional questions
-@app.route('/staff/reviewSurvey/<semestername>/<coursename>')
+@app.route('/staff/reviewSurvey/<coursename>/<semestername>')
 def reviewSurvey():
-	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)
+	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)#get survey object
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
-	allq = allQuestions.getQuestionList()
+	allq = allQuestions.getQuestionList()#allq has all quesions from pool
 	questionlist = []
 	optionallist = []
 
 	#find out all mandatory questions for this survey
-	for q in allqinsurvey:
-		questionlist.append(allQuestions.getQuestion(q))
+	for manq in allqinsurvey:
+		questionlist.append(allQuestions.getQuestion(manq))
 
 	#pick all optional questions
-	for oq in allq:
-		if oq.getIsMandatory() == 0:
-			optionallist.append(oq)
-
+	for opq in allq:
+		if opq.getIsMandatory() == 0:
+			optionallist.append(opq)
+	print("manlist", questionlist)
+	print("optionallist", optionallist)
 	if request.method == 'POST':
 		for q in opqlist:
 			if request.form[q] != NULL:
 				thisSurvey.addQuestion(q)
+		
+		thisSurvey.setStage(1)
+		currentuser.nowCompleted(coursename+semestername)
 
 		return redirect(url_for('finishedReview'))
 	return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
@@ -206,29 +229,33 @@ def finishedReview():
 
 # fix up url based on implementation
 
-@app.route ('/student/survey/<semestername>/<coursename>', methods=["GET", "POST"])
+@app.route ('/student/survey/<coursename>/<semestername>', methods=["GET", "POST"])
 def survey(semestername, coursename):
+	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)
+	allqinsurvey = thisSurvey.getQuestions() #list of questionids
+	questionlist = []
+	resplist = [] #list of all responses
 
-	rightSurvey = surveyList.getSurvey(semestername, coursename)
+	#find out all questions for this survey
+	for q in allqinsurvey:
+		questionlist.append(allQuestions.getQuestion(q))
+
+
 	if request.method == 'POST':
-		answerList = []
-		for question in rightSurvey.getQuestions():
-			if request.form.get(question.getQuestionName()):
-				answerList.append(request.form.get(question.getQuestionName()))
-		newDataObj = Data(answerList)
-		rightSurvey.addResponse(newDataObj)
-		rightSurvey.storeResponse(newDataObj)
-		return redirect(url_for("completed"))
-	else:
-		listRecieved = rightSurvey.getQuestions()
-		listToSend = []
-		for item in listRecieved:
-			listToSend.append(item.getQuestionName())
-		return render_template('survey.html', sem = semestername, course = coursename, questions = listToSend)
+		#for each qid
+		for question in thisSurvey.getQuestions():
+			if request.form.get(question.getQuestionString(question)):
+				resplist.append(request.form.get(question.getQuestionName()))
+		
+		thisSurvey.responsePool.addResponse(resplist)
+		currentuser.nowCompleted(coursename+semestername)
+		return redirect(url_for("studentSurveySubmitted"))
+
+	return render_template('survey.html', qlist = questionlist)
 
 #SURVEY COMPLETED	
 @app.route ('/student/surveySubmitted')
-def completed():
+def studentSurveySubmitted():
 	return render_template('surveySubmitted.html')
 	
 	
