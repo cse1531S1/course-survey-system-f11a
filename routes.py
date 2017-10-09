@@ -120,13 +120,15 @@ def addedquestions():
 @app.route('/admin/allQuestions')
 def questionlist():
     qlist = allQuestions.getQuestionList()
-    optionalq = []
+    
     mandatoryq = []
+    optionalq = []
+    
     for q in qlist:
-    	if q.getIsMandatory() == 1:
-    		mandatoryq.append(q.getQuestionString())
+    	if q.getIsMandatory():
+    		mandatoryq.append(q)
     	else:
-    		optionalq.append(q.getQuestionString())
+    		optionalq.append(q)
 
     #need to ask about delete question interface
 

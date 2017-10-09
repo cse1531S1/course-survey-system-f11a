@@ -39,9 +39,9 @@
 	    {% for q in qlist %}
 	        {{ q.getQuestionString() }}
 	        {% if q.getAnswerType() %}
-	            (Text based)
+	            (MCQ)
 	        {% else %}
-	            (Multiple Choice based)
+	            (TEXT)
 	        {% endif %}
 	        <br>
 	    {% endfor %}

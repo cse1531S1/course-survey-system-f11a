@@ -22,7 +22,12 @@
 	    
     	{% if mandatoryq %}
 	        {% for q in mandatoryq %}
-	            {{ q }}         
+	            {{ q.getQuestionString() }}
+	            {% if q.getAnswerType() %}
+	                (MCQ)
+	            {% else %}
+	                (TEXT)
+	            {% endif %}         
 	             <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
 	    {% endif %}
@@ -31,7 +36,12 @@
 	
 	    {% if optionalq %}
 	        {% for q in optionalq %}
-	            {{ q }} 
+	            {{ q.getQuestionString() }}
+	            {% if q.getAnswerType() %}
+	                (MCQ)
+	            {% else %}
+	                (TEXT)
+	            {% endif %} 
 	            <button type="button" value={{q}}>Remove</button><br><br>
 	        {% endfor %}
 	    {% endif %}	
