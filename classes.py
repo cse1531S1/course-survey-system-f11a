@@ -213,6 +213,7 @@ class QuestionPool(object):
 				break
 			else:
 				newq = Question(retVal[0], retVal[1], retVal[2], retVal[3])
+				self._questions.append(newq)
 			i+=1
 
 	def storePool(self):
