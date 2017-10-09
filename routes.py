@@ -3,6 +3,8 @@ from server import app, allQuestions, allSurveys, authenticate
 from classes import Survey, Question, Authentication, User
 import csv
 
+#THIS IS A COMMENT
+
 currentuser = User(0)
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
