@@ -146,14 +146,17 @@ class SurveyPool(object):
 				self._surveys.remove(survey)
 
 	def generatePool(self):
+		print("Entering generate pool")
 		#self.clearPool()
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
-				newSurvey = Survey(str(item), self.getIDCounter())
-				newSurvey.generateQuestions()
-				newSurvey.responseList.generatePool()
+			string = ''.join(item)
+			print("In generate pool, we're using" + string)				
+			newSurvey = Survey(string, self.getIDCounter())
+			newSurvey.generateQuestions()
+			newSurvey.generateResponses()
 
 	def getSurveyList(self):
 		return self._surveys
@@ -209,7 +212,7 @@ class QuestionPool(object):
 			write.dbinsertq(self._dbName, q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 
 	def clearPool(self):
-		print ("CLEAR POOL JUST GOT CALLED :(")
+		#print ("CLEAR POOL JUST GOT CALLED :(")
 		writer = SQLWriter()
 		query = "DELETE FROM Questions"
 		writer.dbinsert(query, self._dbName)
@@ -331,15 +334,10 @@ class Survey(object):
 
 	def generateQuestions(self):
 		writer = SQLWriter()
-		i = 0
-		while True:
-			query = "SELECT * FROM QUESTIONS WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self._dbName)
-			if retVal == []:
-				break
-			else:
-				self._questions.append(int(retVal))
-			i+=1
+		query = "SELECT * FROM QUESTIONS" 
+		qidList = writer.dbselect(query, self._dbName)
+		for qid in qidList:
+			self._questions.append(int(qid))
 
 	def generateResponses(self):
 		self._responsePool.generatePool()
