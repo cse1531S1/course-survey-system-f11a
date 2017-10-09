@@ -205,16 +205,11 @@ class QuestionPool(object):
 	def generatePool(self):
 		#self.clearPool()
 		writer = SQLWriter()
-		i = 0
-		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self._dbName)
-			if retVal == []:
-				break
-			else:
-				newq = Question(retVal[0], retVal[1], retVal[2], retVal[3])
-				self._questions.append(newq)
-			i+=1
+		query = "SELECT * FROM Questions"
+		qList = writer.dbselect(query, self._dbName)
+		for q in qList:
+			newq = Question(q[0], q[1], q[2], q[3])
+			self._questions.append(newq)
 
 	def storePool(self):
 		writer = SQLWriter()
