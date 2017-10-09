@@ -205,7 +205,7 @@ class QuestionPool(object):
 	def generatePool(self):
 		#self.clearPool()
 		writer = SQLWriter()
-		query = "SELECT * FROM Questions"
+		query = "SELECT * FROM QUESTIONS"
 		qList = writer.dbselect(query, self._dbName)
 		for q in qList:
 			newq = Question(q[0], q[3], q[1], q[2])
@@ -289,7 +289,9 @@ class ResponsePool(object):
 class Survey(object):
 	def __init__(self, coursename, uniqueID):
 		self._coursename = coursename
-		self._dbName = coursename + ".db"
+		print("Coursename in survey init is" + coursename)
+		self._dbName = str(coursename + ".db")
+		print("DB NAME IS " + self._dbName)
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
@@ -339,7 +341,7 @@ class Survey(object):
 		writer = SQLWriter()
 		i = 0
 		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
+			query = "SELECT * FROM QUESTIONS WHERE rowid = %s" % str(i) 
 			retVal = writer.dbselect(query, self._dbName)
 			if retVal == []:
 				break

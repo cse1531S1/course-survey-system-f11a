@@ -157,6 +157,7 @@ def courseObject(semestername, coursename):
 	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		print(surveyname)
 		thisSurvey = allSurveys.addSurvey(surveyname)
 		thisSurvey.setStage(1)
 		for q in questions:
