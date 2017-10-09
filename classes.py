@@ -279,7 +279,6 @@ class ResponsePool(object):
 		return self._responses
 
 	def clearPool(self):
-
 		writer = SQLWriter()
 		query = "DELETE FROM Responses"
 		writer.dbinsert(query)
