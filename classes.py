@@ -117,7 +117,6 @@ class SurveyPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._surveys = []
-		self._idCounter = 0
 
 	def getSurveyByID(self,surveyID):
 		retVal = None
@@ -134,10 +133,10 @@ class SurveyPool(object):
 		return retVal
 
 	def addSurvey(self,surveyName):
-		newSurvey = Survey(surveyName, self.getIDCounter())
+		newSurvey = Survey(surveyName, 0)
 		self._surveys.append(newSurvey)
 		writer = SQLWriter()
-		writer.dbinserts(self._dbName, surveyName)
+		writer.dbinserts(self._dbName, surveyName, newSurvey.getStage())
 		return newSurvey
 		
 	def deleteSurvey(self,surveyID):
@@ -151,25 +150,19 @@ class SurveyPool(object):
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
-			string = ''.join(item)
-			newSurvey = Survey(string, self.getIDCounter())
+			string = ''.join(item[0])
+			newSurvey = Survey(string, item[1]) #, self.getIDCounter()
 			newSurvey.generateQuestions()
 			newSurvey.generateResponses()
 
 	def getSurveyList(self):
 		return self._surveys
 
-	def getIDCounter(self):
-		retVal = self._idCounter
-		self._idCounter+=1
-		return retVal
-
 	def clearPool(self):
 		writer = SQLWriter()
 		query = "DELETE FROM Surveys"
 		writer.dbinsert(query, self._dbName)
 		self._surveys = []
-		self._idCounter = 0
 
 class QuestionPool(object):
 	def __init__(self):
@@ -272,7 +265,6 @@ class ResponsePool(object):
 		return self._responses
 
 	def clearPool(self):
-
 		writer = SQLWriter()
 		query = "DELETE FROM Responses"
 		writer.dbinsert(query)
@@ -280,22 +272,21 @@ class ResponsePool(object):
 		self._currentID = 0
 
 class Survey(object):
-	def __init__(self, coursename, uniqueID):
+	def __init__(self, coursename, state): #uniqueID
 		self._coursename = coursename
 		self._dbName = str(coursename + ".db")
 		writer = SQLWriter()
 		writer.createSurveyDB(self._dbName) 
-		self._uniqueID = uniqueID
+		#self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
-		self._stage = 0 #stage0 = after creation, to be approved, 1 = live, 2 = closed.
-
+		self._stage = state #stage0 = after creation, to be approved, 1 = live, 2 = closed.
 	
 	def getCourseName(self):
 		return self._coursename
 
-	def getSurveyID(self):
-		return self._uniqueID
+	#def getSurveyID(self):
+	#	return self._uniqueID
 
 	#Given a question, add the question ID to the pool
 	def addQuestion(self, q):
@@ -326,6 +317,11 @@ class Survey(object):
 
 	def setStage(self, stage):
 		self._stage = stage
+		#Also update the database
+		writer = SQLWriter()
+		query = "UPDATE SURVEYS SET STATE = %s WHERE SNAME = '%s';" % (stage, self.getCourseName())
+		print("Query is: "+query)
+		writer.dbinsert(query, "InitData.db")
 
 	def getStage(self):
 		return self._stage
@@ -420,10 +416,10 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 
-	def dbinserts(self, dbName, surveyname):
+	def dbinserts(self, dbName, surveyname, state):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		cursorObj.execute("INSERT INTO Surveys VALUES (?)", (surveyname,))
+		cursorObj.execute("INSERT OR REPLACE INTO Surveys (SNAME, STATE) VALUES (?,?)", (surveyname,state))
 		connection.commit()
 		cursorObj.close()
 
