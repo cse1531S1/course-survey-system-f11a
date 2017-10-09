@@ -1,24 +1,16 @@
 import sqlite3
 import csv
 
-#So currently our method for creating an object is:
-	#Read all things from database into qpool
-	#Set our new QID as maxIDFromDB+1
-	#Thereon, give each new question an ID of QID, and increment QID
-#Our new solution is as follows:
-	# The database will automatically assign a unique QID to any question added to it
-	# Naturally, all questions are added on creation
-	# So now we can get rid of the 
-
-
-#DATABASE STRUCTURES
-#QUESTIONS
-	# QID INT 
-	# ISMCFLAG INT NOT NULL
-	# MANFLAG INT NOT NULL
-	# QSTRING TEXT NOT NULL
-#SURVEYS
-	# SID
+# So what we want to do is
+# On survey creation, we want to create a database
+# What needs to be unique about this database?
+# Merely the name
+# It needs to have two tables:
+# Questions needs to have 20 columns as above
+# Responses needs to have 21 columns
+# So what I need is a createSurveyDB function under sqlwriter
+# Which given a string, will create the database
+# Pretty straight forward
 
 class Authentication(object):
 	def __init__(self):
@@ -289,9 +281,9 @@ class ResponsePool(object):
 class Survey(object):
 	def __init__(self, coursename, uniqueID):
 		self._coursename = coursename
-		print("Coursename in survey init is" + coursename)
 		self._dbName = str(coursename + ".db")
-		print("DB NAME IS " + self._dbName)
+		writer = SQLWriter()
+		writer.createSurveyDB(self._dbName) 
 		self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
@@ -461,3 +453,54 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 		return retVal
+
+	def createSurveyDB(self, dbName):
+		connection = sqlite3.connect(dbName);
+		cursorObj = connection.cursor();
+		cursorObj.execute('''CREATE TABLE IF NOT EXISTS QUESTIONS
+				(Q1 INT,
+				Q2 INT,
+				Q3 INT,
+				Q4 INT,
+				Q5 INT,
+				Q6 INT,
+				Q7 INT,
+				Q8 INT,
+				Q9 INT,
+				Q10 INT,
+				Q11 INT,
+				Q12 INT,
+				Q13 INT,
+				Q14 INT,
+				Q15 INT,
+				Q16 INT,
+				Q17 INT,
+				Q18 INT,
+				Q19 INT,
+				Q20 INT)
+		''')
+		cursorObj.execute(''' CREATE TABLE IF NOT EXISTS RESPONSES
+				(RID INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+				Q1 TEXT,
+				Q2 TEXT,
+				Q3 TEXT,
+				Q4 TEXT,
+				Q5 TEXT,
+				Q6 TEXT,
+				Q7 TEXT,
+				Q8 TEXT,
+				Q9 TEXT,
+				Q10 TEXT,
+				Q11 TEXT,
+				Q12 TEXT,
+				Q13 TEXT,
+				Q14 TEXT,
+				Q15 TEXT,
+				Q16 TEXT,
+				Q17 TEXT,
+				Q18 TEXT,
+				Q19 TEXT,
+				Q20 TEXT)
+		''')
+		connection.commit();
+		cursorObj.close();
