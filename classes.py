@@ -1,6 +1,25 @@
 import sqlite3
 import csv
 
+#So currently our method for creating an object is:
+	#Read all things from database into qpool
+	#Set our new QID as maxIDFromDB+1
+	#Thereon, give each new question an ID of QID, and increment QID
+#Our new solution is as follows:
+	# The database will automatically assign a unique QID to any question added to it
+	# Naturally, all questions are added on creation
+	# So now we can get rid of the 
+
+
+#DATABASE STRUCTURES
+#QUESTIONS
+	# QID INT 
+	# ISMCFLAG INT NOT NULL
+	# MANFLAG INT NOT NULL
+	# QSTRING TEXT NOT NULL
+#SURVEYS
+	# SID
+
 class Authentication(object):
 	def __init__(self):
 		self._dbName = "Users.db"
@@ -163,7 +182,6 @@ class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._questions = [] #list of question objects
-		self._questionCounter = 0
 
 	def getQuestion(self,questionID):
 		retVal = None
@@ -178,14 +196,14 @@ class QuestionPool(object):
 				self._questions.remove(question)
 
 	def addQuestion(self, qString, answerType, isMandatory):
-		q = Question(self._questionCounter, qString, answerType, isMandatory)
-		self._questions.append(q)
-		self._questionCounter+=1
 		writer = SQLWriter()
-		writer.dbinsertq(self._dbName, self._questionCounter, answerType, isMandatory, qString)	
+		writer.dbinsertq(self._dbName, answerType, isMandatory, qString)
+		qid = writer.dbGetNextUniqueID(self._dbName)
+		q = Question(qid, qString, answerType, isMandatory)
+		self._questions.append(q)		
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
 		i = 0
 		while True:
@@ -195,24 +213,19 @@ class QuestionPool(object):
 				break
 			else:
 				newq = Question(retVal[0], retVal[1], retVal[2], retVal[3])
-				self._questions.append(newq)
-				if int(retVal[0]) > self._questionCounter:
-					self._questionCounter = int(retVal[0])
-					self._questionCounter +=1
 			i+=1
 
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self._questions:
-			write.dbinsertq(self._dbName, q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
-			writer.dbinsert(query, self._dbName)
+			write.dbinsertq(self._dbName, q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 
 	def clearPool(self):
+		print ("CLEAR POOL JUST GOT CALLED :(")
 		writer = SQLWriter()
 		query = "DELETE FROM Questions"
 		writer.dbinsert(query, self._dbName)
 		self._questions = []
-		self._questionCounter = 0
 
 	def getQuestionList(self):
 		return self._questions
@@ -220,7 +233,6 @@ class QuestionPool(object):
 class ResponsePool(object):
 	def __init__(self, dbName):
 		self._dbName = dbName
-		self._currentID = 0
 		self._responses = []
 
 	#Given a response list, add it to the database and the pool
@@ -253,7 +265,7 @@ class ResponsePool(object):
 				self._responses.remove(resp)
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
 		i = 0
 		while True:
@@ -428,10 +440,10 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 
-	def dbinsertq(self, dbName, qid, mc, man, qstr):
+	def dbinsertq(self, dbName, mc, man, qstr):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		cursorObj.execute("INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?, ?)", (qid, mc, man, qstr))
+		cursorObj.execute("INSERT INTO Questions (ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?)", (mc, man, qstr))
 		connection.commit()
 		cursorObj.close()
 
@@ -439,6 +451,14 @@ class SQLWriter(object):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		retVal = cursorObj.execute(query)
+		connection.commit()
+		cursorObj.close()
+		return retVal
+	
+	def dbGetNextUniqueID(self, dbName):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		retVal = cursorObj.execute("SELECT last_insert_rowid()")
 		connection.commit()
 		cursorObj.close()
 		return retVal
