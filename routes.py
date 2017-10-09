@@ -158,7 +158,7 @@ def courseObject(semestername, coursename):
 	if request.method == "POST":
 		surveyname = coursename+semestername
 		print(surveyname)
-		thisSurvey = allSurveys.addSurvey(surveyname)
+		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: add surveyID here too ALSO make sure QIDs are being written properly
 		thisSurvey.setStage(1)
 		for q in questions:
 			if request.form[q] != NULL:

@@ -146,14 +146,12 @@ class SurveyPool(object):
 				self._surveys.remove(survey)
 
 	def generatePool(self):
-		print("Entering generate pool")
 		#self.clearPool()
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
 			string = ''.join(item)
-			print("In generate pool, we're using" + string)				
 			newSurvey = Survey(string, self.getIDCounter())
 			newSurvey.generateQuestions()
 			newSurvey.generateResponses()
