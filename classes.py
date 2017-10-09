@@ -208,7 +208,7 @@ class QuestionPool(object):
 		query = "SELECT * FROM Questions"
 		qList = writer.dbselect(query, self._dbName)
 		for q in qList:
-			newq = Question(q[0], q[1], q[2], q[3])
+			newq = Question(q[0], q[3], q[1], q[2])
 			self._questions.append(newq)
 
 	def storePool(self):
@@ -279,6 +279,7 @@ class ResponsePool(object):
 		return self._responses
 
 	def clearPool(self):
+
 		writer = SQLWriter()
 		query = "DELETE FROM Responses"
 		writer.dbinsert(query)

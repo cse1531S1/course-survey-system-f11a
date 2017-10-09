@@ -76,9 +76,9 @@ def studentdashboard():
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
 			if surveyobj.getStage() == 1:
-				tobeanswered.append(surveyobj.getCourseName())
+				tobeanswered.append(surveyobj)
 
-	return render_template('staffDashboard.html', sanswered = tobeanswered)
+	return render_template('studentDashboard.html', sanswered = tobeanswered)
 
 
 #NEW QUESTIONS PAGE
@@ -193,7 +193,7 @@ def questionselected():
     
 #choose optional questions
 @app.route('/staff/reviewSurvey/<surveyName>')
-def reviewSurvey():
+def reviewSurvey(surveyName):
 	thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
 	allq = allQuestions.getQuestionList()#allq has all quesions from pool
@@ -233,9 +233,9 @@ def finishedReview():
 
 # fix up url based on implementation
 
-@app.route ('/student/survey/<coursename>/<semestername>', methods=["GET", "POST"])
-def survey(semestername, coursename):
-	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)
+@app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
+def survey(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
 	questionlist = []
 	resplist = [] #list of all responses
@@ -252,7 +252,7 @@ def survey(semestername, coursename):
 				resplist.append(request.form.get(question.getQuestionName()))
 		
 		thisSurvey.responsePool.addResponse(resplist)
-		currentuser.nowCompleted(coursename+semestername)
+		currentuser.nowCompleted(surveyName)
 		return redirect(url_for("studentSurveySubmitted"))
 
 	return render_template('survey.html', qlist = questionlist)

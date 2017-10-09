@@ -14,11 +14,18 @@
 	<h1>Respondant Dashboard</h1>
 	
 	<h3>Survey reports to be filled out</h3>
-	
-	
+	{% if sanswered %}
+	    {% for survey in sanswered %}
+	        <a href="/student/survey/{{ survey.getCourseName() }}" class="w3-bar-item w3-button">{{ survey.getCourseName() }}</a>
+	        <br>
+	    {% endfor %}
+	{% else %}
+	No current surveys to fill out.
+	{% endif %}
 	
 	
 	<h3>Released survey results</h3>
+	No released results.
 
 <!-- Page content -->
 
