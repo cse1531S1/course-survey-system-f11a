@@ -154,7 +154,7 @@ class SurveyPool(object):
 				self._surveys.remove(survey)
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
@@ -279,6 +279,7 @@ class ResponsePool(object):
 		return self._responses
 
 	def clearPool(self):
+
 		writer = SQLWriter()
 		query = "DELETE FROM Responses"
 		writer.dbinsert(query)
@@ -339,7 +340,7 @@ class Survey(object):
 		i = 0
 		while True:
 			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self.dbName)
+			retVal = writer.dbselect(query, self._dbName)
 			if retVal == []:
 				break
 			else:
