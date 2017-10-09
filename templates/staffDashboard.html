@@ -17,7 +17,8 @@
 	<h3>Courses To Be Reviewed</h3>
 	{% if sreviewed %}
 	    {% for s in sreviewed %}
-	        <a href="/staff/reviewSurvey/{{ s.getCourseName() }}" class="w3-bar-item w3-button w3-right">{{ s.getCourseName() }}</a><br>
+	        <a href="/staff/reviewSurvey/{{s.getCourseName()}}" class="w3-bar-item w3-button w3-right">{{ s.getCourseName() }}</a>
+	        <br>
 	    {% endfor %}
 	{% else %}
 	No surveys have been added.

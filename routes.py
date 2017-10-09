@@ -38,10 +38,10 @@ def admindashboard():
 	questionlist = []
 	
 	for s in slist:
-		if s.getStage() == 0:
-			tobereviewed.append(s.getCourseName())
 		if s.getStage() == 1:
-			slive.append(s.getCourseName())
+			tobereviewed.append(s)
+		if s.getStage() == 2:
+			slive.append(s)
 
 	qlist = allQuestions.getQuestionList()
 	
@@ -60,7 +60,7 @@ def staffdashboard():
 
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
-			if surveyobj.getStage() == 0:
+			if surveyobj.getStage() == 1:
 				tobereviewed.append(surveyobj)
 
 	return render_template('staffDashboard.html', sreviewed = tobereviewed)
@@ -75,7 +75,7 @@ def studentdashboard():
 
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
-			if surveyobj.getStage() == 1:
+			if surveyobj.getStage() == 2:
 				tobeanswered.append(surveyobj)
 
 	return render_template('studentDashboard.html', sanswered = tobeanswered)
@@ -149,15 +149,14 @@ def newsurvey():
 #need to change this to /admin/chooseQuestions depending on implementation. Look into HTML FORMS 
 #in tutorial: localhost/adminSurveyForm?choice=COMP2041+17s2
 
-@app.route('/admin/chooseQuestions/<coursename>/<semestername>',methods=["GET","POST"])
+@app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
-		allSurveys.addSurvey(surveyname)
-		thisSurvey = allSurveys.getSurveyByName(surveyname);
-
+		thisSurvey = allSurveys.addSurvey(surveyname)
+		thisSurvey.setStage(1)
 		for q in questions:
 			if request.form[q] != NULL:
 				thisSurvey.addQuestion(q)

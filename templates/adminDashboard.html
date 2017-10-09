@@ -16,9 +16,8 @@
 	<h3>Live Survey Forms</h3>
 	{% if slive %}
 	    {% for s in slive %}
-	        {{ s }}<br>
+	        {{ s.getCourseName() }}<br>
 	    {% endfor %}
-	
 	{% else %}
 	No surveys are live.
 	{% endif %}
@@ -26,9 +25,8 @@
 	<h3>Survey Forms To Be Reviewed</h3>
 	{% if sreviewed %}
 	    {% for s in sreviewed %}
-	        {{ s }}<br>
+	        {{ s.getCourseName() }}<br>
 	    {% endfor %}
-	
 	{% else %}
 	No surveys have been added.
 	{% endif %}
