@@ -30,6 +30,8 @@
 	            {% endif %}         
 	             <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
+	    {% else %}
+	    No mandatory questions to display
 	    {% endif %}
 	
 	    <h3> Optional Questions include</h3>
@@ -42,8 +44,10 @@
 	            {% else %}
 	                (TEXT)
 	            {% endif %} 
-	            <button type="button" value={{q}}>Remove</button><br><br>
+	            <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
+	    {% else %}
+	    No optional questions to display
 	    {% endif %}	
 	
 	</form>

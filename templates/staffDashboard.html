@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Course Selection</title>
+<title>Staff Dashboard</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -11,12 +11,24 @@
     {% include 'staffNav.html' %}
 <!-- End Navbar -->
 	
+	<h1>Staff Dashboard</h1>
+	
+
+	<h3>Courses To Be Reviewed</h3>
+	{% if sreviewed %}
+	    {% for s in sreviewed %}
+	        <a href="/staff/reviewSurvey/{{ s.getCourseName() }}" class="w3-bar-item w3-button w3-right">{{ s.getCourseName() }}</a><br>
+	    {% endfor %}
+	{% else %}
+	No surveys have been added.
+	{% endif %}
+	
+	<h3>Released Survey Results</h3>
+	No results are available.
+
+
 <!-- Page content -->
 
-	<h1> You have succesfully created a new survey</h1>
-	
-	<a href="/admin/chooseSession" class="w3-bar-item w3-button">Add Another Survey</a>
-	<a href="/admin/Dashboard" class="w3-bar-item w3-button w3-right">Return To Dashboard</a> 
 		
 </body>
 </html>

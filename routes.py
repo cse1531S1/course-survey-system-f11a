@@ -61,7 +61,7 @@ def staffdashboard():
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
 			if surveyobj.getStage() == 0:
-				tobereviewed.append(surveyobj.getCourseName())
+				tobereviewed.append(surveyobj)
 
 	return render_template('staffDashboard.html', sreviewed = tobereviewed)
 
@@ -192,9 +192,9 @@ def questionselected():
 		return render_template('adminSurveySubmitted.html')   
     
 #choose optional questions
-@app.route('/staff/reviewSurvey/<coursename>/<semestername>')
+@app.route('/staff/reviewSurvey/<surveyName>')
 def reviewSurvey():
-	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)#get survey object
+	thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
 	allq = allQuestions.getQuestionList()#allq has all quesions from pool
 	questionlist = []
@@ -216,7 +216,7 @@ def reviewSurvey():
 				thisSurvey.addQuestion(q)
 		
 		thisSurvey.setStage(1)
-		currentuser.nowCompleted(coursename+semestername)
+		currentuser.nowCompleted(surveyName)
 
 		return redirect(url_for('finishedReview'))
 	return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
