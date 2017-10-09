@@ -20,8 +20,8 @@
 	
     	<h3> Mandatory Questions include</h3>
 	    
-    	{% if optionalq %}
-	        {% for q in optionalq %}
+    	{% if mandatoryq %}
+	        {% for q in mandatoryq %}
 	            {{ q }}         
 	             <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
@@ -29,8 +29,8 @@
 	
 	    <h3> Optional Questions include</h3>
 	
-	    {% if mandatoryq %}
-	        {% for q in mandatoryq %}
+	    {% if optionalq %}
+	        {% for q in optionalq %}
 	            {{ q }} 
 	            <button type="button" value={{q}}>Remove</button><br><br>
 	        {% endfor %}

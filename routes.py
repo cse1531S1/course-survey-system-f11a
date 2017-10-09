@@ -46,7 +46,7 @@ def admindashboard():
 	qlist = allQuestions.getQuestionList()
 	
 	for q in qlist:
-		questionlist.append(q.getQuestionString())
+		questionlist.append(q)
 
 	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive)
 
@@ -167,15 +167,12 @@ def courseObject(semestername, coursename):
 	else:
 		qlist = allQuestions.getQuestionList()
 		
-		MCquestions= []
+		mandatoryQ = []
 		TEXTquestions = []
 		for q in qlist:
 			if q.getIsMandatory():
-			    if q.getAnswerType():
-			        MCquestions.append(q.getQuestionString())
-			    else:
-				    TEXTquestions.append(q.getQuestionString())
-		return render_template('choosequestions.html', MCq = MCquestions, TEXTq = TEXTquestions)
+			        mandatoryQ.append(q)
+		return render_template('choosequestions.html', questions = mandatoryQ)
 
 
 #PAGE AFTER SELECTING QUESTIONS
