@@ -152,6 +152,7 @@ class SurveyPool(object):
 		for item in courseList:
 			string = ''.join(item[0])
 			newSurvey = Survey(string, item[1]) #, self.getIDCounter()
+			self._surveys.append(newSurvey)
 			newSurvey.generateQuestions()
 			newSurvey.generateResponses()
 

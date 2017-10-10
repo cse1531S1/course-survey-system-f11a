@@ -160,10 +160,10 @@ def courseObject(semestername, coursename):
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
 		qlist = allQuestions.getQuestionList()
 
-		for q in qlist:
-			qstring = q.getQuestionString()
-			#if request.form[qstring]:
-			#	thisSurvey.addQuestion(q)
+		for v in request.form:
+			for q in qlist:
+				if v == q.getQuestionString():
+					thisSurvey.addQuestion(q)
 		return redirect(url_for('questionselected'))
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
