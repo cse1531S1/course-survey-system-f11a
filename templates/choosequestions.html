@@ -21,7 +21,7 @@
 		{% autoescape false %}
 			{% for q in questions %}
 				<p>
-				<input class = "w3-check" type="checkbox" name="{{q}}">
+				<input class = "w3-check" type="checkbox" name="{{q.getQuestionString()}}">
 				<label>{{q.getQuestionString()}}</label>
 			    {% if q.getAnswerType() %}
 	                (MCQ)

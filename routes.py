@@ -154,28 +154,26 @@ def newsurvey():
 @app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
-	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
-		print(surveyname) #Debug line
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
-		thisSurvey.setStage(1) #ALSO make sure QIDs are being written properly
-		for q in questions:
-			if request.form[q] != NULL:
-				thisSurvey.addQuestion(q)
+		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
+		qlist = allQuestions.getQuestionList()
 
-
+		for q in qlist:
+			qstring = q.getQuestionString()
+			#if request.form[qstring]:
+			#	thisSurvey.addQuestion(q)
 		return redirect(url_for('questionselected'))
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
-		qlist = allQuestions.getQuestionList()
-		
+		qlist = allQuestions.getQuestionList()	
 		mandatoryQ = []
 		TEXTquestions = []
 		for q in qlist:
 			if q.getIsMandatory():
-			        mandatoryQ.append(q)
+			    mandatoryQ.append(q)
 		return render_template('choosequestions.html', questions = mandatoryQ)
 
 

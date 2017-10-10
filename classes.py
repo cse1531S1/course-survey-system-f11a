@@ -292,7 +292,7 @@ class Survey(object):
 	def addQuestion(self, q):
 		self._questionList.append(q.getQuestionID())
 		writer = SQLWriter()
-		query = "INSERT INTO Questions VALUES %s" % (str(q.getQuestionID()))
+		query = "INSERT INTO Questions (QIDS) VALUES (%s)" % (str(q.getQuestionID()))
 		writer.dbinsert(query, self._dbName)
 	
 	#Given a list of question IDs, set the list of QIDs to those questions
@@ -331,7 +331,7 @@ class Survey(object):
 		query = "SELECT * FROM QUESTIONS" 
 		qidList = writer.dbselect(query, self._dbName)
 		for qid in qidList:
-			self._questions.append(int(qid))
+			self._questionList.append(qid[0])
 
 	def generateResponses(self):
 		self._responsePool.generatePool()
@@ -450,26 +450,7 @@ class SQLWriter(object):
 		connection = sqlite3.connect(dbName);
 		cursorObj = connection.cursor();
 		cursorObj.execute('''CREATE TABLE IF NOT EXISTS QUESTIONS
-				(Q1 INT,
-				Q2 INT,
-				Q3 INT,
-				Q4 INT,
-				Q5 INT,
-				Q6 INT,
-				Q7 INT,
-				Q8 INT,
-				Q9 INT,
-				Q10 INT,
-				Q11 INT,
-				Q12 INT,
-				Q13 INT,
-				Q14 INT,
-				Q15 INT,
-				Q16 INT,
-				Q17 INT,
-				Q18 INT,
-				Q19 INT,
-				Q20 INT)
+				(QIDS INT)
 		''')
 		cursorObj.execute(''' CREATE TABLE IF NOT EXISTS RESPONSES
 				(RID INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
