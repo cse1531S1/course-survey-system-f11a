@@ -3,6 +3,8 @@ from server import app, allQuestions, allSurveys, authenticate
 from classes import Survey, Question, Authentication, User
 import csv
 
+#THIS IS A COMMENT
+
 currentuser = User(0)
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
@@ -38,15 +40,15 @@ def admindashboard():
 	questionlist = []
 	
 	for s in slist:
-		if s.getStage() == 0:
-			tobereviewed.append(s.getCourseName())
 		if s.getStage() == 1:
-			slive.append(s.getCourseName())
+			tobereviewed.append(s)
+		if s.getStage() == 2:
+			slive.append(s)
 
 	qlist = allQuestions.getQuestionList()
 	
 	for q in qlist:
-		questionlist.append(q.getQuestionString())
+		questionlist.append(q)
 
 	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive)
 
@@ -60,8 +62,8 @@ def staffdashboard():
 
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
-			if surveyobj.getStage() == 0:
-				tobereviewed.append(surveyobj.getCourseName())
+			if surveyobj.getStage() == 1:
+				tobereviewed.append(surveyobj)
 
 	return render_template('staffDashboard.html', sreviewed = tobereviewed)
 
@@ -75,10 +77,10 @@ def studentdashboard():
 
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
-			if surveyobj.getStage() == 1:
-				tobeanswered.append(surveyobj.getCourseName())
+			if surveyobj.getStage() == 2:
+				tobeanswered.append(surveyobj)
 
-	return render_template('staffDashboard.html', sanswered = tobeanswered)
+	return render_template('studentDashboard.html', sanswered = tobeanswered)
 
 
 #NEW QUESTIONS PAGE
@@ -120,13 +122,15 @@ def addedquestions():
 @app.route('/admin/allQuestions')
 def questionlist():
     qlist = allQuestions.getQuestionList()
-    optionalq = []
+    
     mandatoryq = []
+    optionalq = []
+    
     for q in qlist:
-    	if q.getIsMandatory() == 1:
-    		mandatoryq.append(q.getQuestionString())
+    	if q.getIsMandatory():
+    		mandatoryq.append(q)
     	else:
-    		optionalq.append(q.getQuestionString())
+    		optionalq.append(q)
 
     #need to ask about delete question interface
 
@@ -147,35 +151,30 @@ def newsurvey():
 #need to change this to /admin/chooseQuestions depending on implementation. Look into HTML FORMS 
 #in tutorial: localhost/adminSurveyForm?choice=COMP2041+17s2
 
-@app.route('/admin/chooseQuestions/<coursename>/<semestername>',methods=["GET","POST"])
+@app.route('/admin/chooseQuestions/<semestername>/<coursename>',methods=["GET","POST"])
 def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
-	questions = []
 	if request.method == "POST":
 		surveyname = coursename+semestername
-		allSurveys.addSurvey(surveyname)
-		thisSurvey = allSurveys.getSurveyByName(surveyname);
+		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
+		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
+		qlist = allQuestions.getQuestionList()
 
-		for q in questions:
-			if request.form[q] != NULL:
-				thisSurvey.addQuestion(q)
-
-
+		for q in qlist:
+			qstring = q.getQuestionString()
+			#if request.form[qstring]:
+			#	thisSurvey.addQuestion(q)
 		return redirect(url_for('questionselected'))
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
-		qlist = allQuestions.getQuestionList()
-		
-		MCquestions= []
+		qlist = allQuestions.getQuestionList()	
+		mandatoryQ = []
 		TEXTquestions = []
 		for q in qlist:
 			if q.getIsMandatory():
-			    if q.getAnswerType():
-			        MCquestions.append(q.getQuestionString())
-			    else:
-				    TEXTquestions.append(q.getQuestionString())
-		return render_template('choosequestions.html', MCq = MCquestions, TEXTq = TEXTquestions)
+			    mandatoryQ.append(q)
+		return render_template('choosequestions.html', questions = mandatoryQ)
 
 
 #PAGE AFTER SELECTING QUESTIONS
@@ -193,9 +192,9 @@ def questionselected():
 		return render_template('adminSurveySubmitted.html')   
     
 #choose optional questions
-@app.route('/staff/reviewSurvey/<coursename>/<semestername>')
-def reviewSurvey():
-	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)#get survey object
+@app.route('/staff/reviewSurvey/<surveyName>')
+def reviewSurvey(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
 	allq = allQuestions.getQuestionList()#allq has all quesions from pool
 	questionlist = []
@@ -217,7 +216,7 @@ def reviewSurvey():
 				thisSurvey.addQuestion(q)
 		
 		thisSurvey.setStage(1)
-		currentuser.nowCompleted(coursename+semestername)
+		currentuser.nowCompleted(surveyName)
 
 		return redirect(url_for('finishedReview'))
 	return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
@@ -234,9 +233,9 @@ def finishedReview():
 
 # fix up url based on implementation
 
-@app.route ('/student/survey/<coursename>/<semestername>', methods=["GET", "POST"])
-def survey(semestername, coursename):
-	thisSurvey = allSurveys.getSurveyByName(coursename+semestername)
+@app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
+def survey(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
 	questionlist = []
 	resplist = [] #list of all responses
@@ -253,7 +252,7 @@ def survey(semestername, coursename):
 				resplist.append(request.form.get(question.getQuestionName()))
 		
 		thisSurvey.responsePool.addResponse(resplist)
-		currentuser.nowCompleted(coursename+semestername)
+		currentuser.nowCompleted(surveyName)
 		return redirect(url_for("studentSurveySubmitted"))
 
 	return render_template('survey.html', qlist = questionlist)

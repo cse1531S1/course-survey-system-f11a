@@ -1,6 +1,17 @@
 import sqlite3
 import csv
 
+# So what we want to do is
+# On survey creation, we want to create a database
+# What needs to be unique about this database?
+# Merely the name
+# It needs to have two tables:
+# Questions needs to have 20 columns as above
+# Responses needs to have 21 columns
+# So what I need is a createSurveyDB function under sqlwriter
+# Which given a string, will create the database
+# Pretty straight forward
+
 class Authentication(object):
 	def __init__(self):
 		self._dbName = "Users.db"
@@ -106,7 +117,6 @@ class SurveyPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._surveys = []
-		self._idCounter = 0
 
 	def getSurveyByID(self,surveyID):
 		retVal = None
@@ -123,10 +133,10 @@ class SurveyPool(object):
 		return retVal
 
 	def addSurvey(self,surveyName):
-		newSurvey = Survey(surveyName, self.getIDCounter())
+		newSurvey = Survey(surveyName, 0)
 		self._surveys.append(newSurvey)
 		writer = SQLWriter()
-		writer.dbinserts(self._dbName, surveyName)
+		writer.dbinserts(self._dbName, surveyName, newSurvey.getStage())
 		return newSurvey
 		
 	def deleteSurvey(self,surveyID):
@@ -135,35 +145,29 @@ class SurveyPool(object):
 				self._surveys.remove(survey)
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
 		query = "SELECT * FROM Surveys"
 		courseList = writer.dbselect(query, self._dbName) #This is stored in the database as a series of strings
 		for item in courseList:
-				newSurvey = Survey(str(item), self.getIDCounter())
-				newSurvey.generateQuestions()
-				newSurvey.responseList.generatePool()
+			string = ''.join(item[0])
+			newSurvey = Survey(string, item[1]) #, self.getIDCounter()
+			newSurvey.generateQuestions()
+			newSurvey.generateResponses()
 
 	def getSurveyList(self):
 		return self._surveys
-
-	def getIDCounter(self):
-		retVal = self._idCounter
-		self._idCounter+=1
-		return retVal
 
 	def clearPool(self):
 		writer = SQLWriter()
 		query = "DELETE FROM Surveys"
 		writer.dbinsert(query, self._dbName)
 		self._surveys = []
-		self._idCounter = 0
 
 class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
 		self._questions = [] #list of question objects
-		self._questionCounter = 0
 
 	def getQuestion(self,questionID):
 		retVal = None
@@ -178,41 +182,32 @@ class QuestionPool(object):
 				self._questions.remove(question)
 
 	def addQuestion(self, qString, answerType, isMandatory):
-		q = Question(self._questionCounter, qString, answerType, isMandatory)
-		self._questions.append(q)
-		self._questionCounter+=1
 		writer = SQLWriter()
-		writer.dbinsertq(self._dbName, self._questionCounter, answerType, isMandatory, qString)	
+		writer.dbinsertq(self._dbName, answerType, isMandatory, qString)
+		qid = writer.dbGetNextUniqueID(self._dbName)
+		q = Question(qid, qString, answerType, isMandatory)
+		self._questions.append(q)		
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
-		i = 0
-		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self._dbName)
-			if retVal == []:
-				break
-			else:
-				newq = Question(retVal[0], retVal[1], retVal[2], retVal[3])
-				self._questions.append(newq)
-				if int(retVal[0]) > self._questionCounter:
-					self._questionCounter = int(retVal[0])
-					self._questionCounter +=1
-			i+=1
+		query = "SELECT * FROM QUESTIONS"
+		qList = writer.dbselect(query, self._dbName)
+		for q in qList:
+			newq = Question(q[0], q[3], q[1], q[2])
+			self._questions.append(newq)
 
 	def storePool(self):
 		writer = SQLWriter()
 		for q in self._questions:
-			write.dbinsertq(self._dbName, q.getQuestionID(), q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
-			writer.dbinsert(query, self._dbName)
+			write.dbinsertq(self._dbName, q.getAnswerType(), q.getIsMandatory(), q.getQuestionString())
 
 	def clearPool(self):
+		#print ("CLEAR POOL JUST GOT CALLED :(")
 		writer = SQLWriter()
 		query = "DELETE FROM Questions"
 		writer.dbinsert(query, self._dbName)
 		self._questions = []
-		self._questionCounter = 0
 
 	def getQuestionList(self):
 		return self._questions
@@ -220,7 +215,6 @@ class QuestionPool(object):
 class ResponsePool(object):
 	def __init__(self, dbName):
 		self._dbName = dbName
-		self._currentID = 0
 		self._responses = []
 
 	#Given a response list, add it to the database and the pool
@@ -253,7 +247,7 @@ class ResponsePool(object):
 				self._responses.remove(resp)
 
 	def generatePool(self):
-		self.clearPool()
+		#self.clearPool()
 		writer = SQLWriter()
 		i = 0
 		while True:
@@ -278,26 +272,27 @@ class ResponsePool(object):
 		self._currentID = 0
 
 class Survey(object):
-	def __init__(self, coursename, uniqueID):
+	def __init__(self, coursename, state): #uniqueID
 		self._coursename = coursename
-		self._dbName = coursename + ".db"
-		self._uniqueID = uniqueID
+		self._dbName = str(coursename + ".db")
+		writer = SQLWriter()
+		writer.createSurveyDB(self._dbName) 
+		#self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
-		self._stage = 0 #stage0 = after creation, to be approved, 1 = live, 2 = closed.
-
+		self._stage = state #stage0 = after creation, to be approved, 1 = live, 2 = closed.
 	
 	def getCourseName(self):
 		return self._coursename
 
-	def getSurveyID(self):
-		return self._uniqueID
+	#def getSurveyID(self):
+	#	return self._uniqueID
 
 	#Given a question, add the question ID to the pool
 	def addQuestion(self, q):
 		self._questionList.append(q.getQuestionID())
 		writer = SQLWriter()
-		query = "INSERT INTO Questions VALUES %s" % (str(q.getQuestionID()))
+		query = "INSERT INTO Questions (QIDS) VALUES (%s)" % (str(q.getQuestionID()))
 		writer.dbinsert(query, self._dbName)
 	
 	#Given a list of question IDs, set the list of QIDs to those questions
@@ -322,21 +317,21 @@ class Survey(object):
 
 	def setStage(self, stage):
 		self._stage = stage
+		#Also update the database
+		writer = SQLWriter()
+		query = "UPDATE SURVEYS SET STATE = %s WHERE SNAME = '%s';" % (stage, self.getCourseName())
+		print("Query is: "+query)
+		writer.dbinsert(query, "InitData.db")
 
 	def getStage(self):
 		return self._stage
 
 	def generateQuestions(self):
 		writer = SQLWriter()
-		i = 0
-		while True:
-			query = "SELECT * FROM Questions WHERE rowid = %s" % str(i) 
-			retVal = writer.dbselect(query, self.dbName)
-			if retVal == []:
-				break
-			else:
-				self._questions.append(int(retVal))
-			i+=1
+		query = "SELECT * FROM QUESTIONS" 
+		qidList = writer.dbselect(query, self._dbName)
+		for qid in qidList:
+			self._questionList.append(qid[0])
 
 	def generateResponses(self):
 		self._responsePool.generatePool()
@@ -421,17 +416,17 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 
-	def dbinserts(self, dbName, surveyname):
+	def dbinserts(self, dbName, surveyname, state):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		cursorObj.execute("INSERT INTO Surveys VALUES (?)", (surveyname,))
+		cursorObj.execute("INSERT OR REPLACE INTO Surveys (SNAME, STATE) VALUES (?,?)", (surveyname,state))
 		connection.commit()
 		cursorObj.close()
 
-	def dbinsertq(self, dbName, qid, mc, man, qstr):
+	def dbinsertq(self, dbName, mc, man, qstr):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		cursorObj.execute("INSERT INTO Questions (QID, ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?, ?)", (qid, mc, man, qstr))
+		cursorObj.execute("INSERT INTO Questions (ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?)", (mc, man, qstr))
 		connection.commit()
 		cursorObj.close()
 
@@ -442,3 +437,43 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 		return retVal
+	
+	def dbGetNextUniqueID(self, dbName):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		retVal = cursorObj.execute("SELECT last_insert_rowid()")
+		connection.commit()
+		cursorObj.close()
+		return retVal
+
+	def createSurveyDB(self, dbName):
+		connection = sqlite3.connect(dbName);
+		cursorObj = connection.cursor();
+		cursorObj.execute('''CREATE TABLE IF NOT EXISTS QUESTIONS
+				(QIDS INT)
+		''')
+		cursorObj.execute(''' CREATE TABLE IF NOT EXISTS RESPONSES
+				(RID INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+				Q1 TEXT,
+				Q2 TEXT,
+				Q3 TEXT,
+				Q4 TEXT,
+				Q5 TEXT,
+				Q6 TEXT,
+				Q7 TEXT,
+				Q8 TEXT,
+				Q9 TEXT,
+				Q10 TEXT,
+				Q11 TEXT,
+				Q12 TEXT,
+				Q13 TEXT,
+				Q14 TEXT,
+				Q15 TEXT,
+				Q16 TEXT,
+				Q17 TEXT,
+				Q18 TEXT,
+				Q19 TEXT,
+				Q20 TEXT)
+		''')
+		connection.commit();
+		cursorObj.close();

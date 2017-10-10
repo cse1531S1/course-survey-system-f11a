@@ -20,20 +20,34 @@
 	
     	<h3> Mandatory Questions include</h3>
 	    
-    	{% if optionalq %}
-	        {% for q in optionalq %}
-	            {{ q }}         
+    	{% if mandatoryq %}
+	        {% for q in mandatoryq %}
+	            {{ q.getQuestionString() }}
+	            {% if q.getAnswerType() %}
+	                (MCQ)
+	            {% else %}
+	                (TEXT)
+	            {% endif %}         
 	             <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
+	    {% else %}
+	    No mandatory questions to display
 	    {% endif %}
 	
 	    <h3> Optional Questions include</h3>
 	
-	    {% if mandatoryq %}
-	        {% for q in mandatoryq %}
-	            {{ q }} 
-	            <button type="button" value={{q}}>Remove</button><br><br>
+	    {% if optionalq %}
+	        {% for q in optionalq %}
+	            {{ q.getQuestionString() }}
+	            {% if q.getAnswerType() %}
+	                (MCQ)
+	            {% else %}
+	                (TEXT)
+	            {% endif %} 
+	            <button type="button" value={{q}}>Remove</button><br>
 	        {% endfor %}
+	    {% else %}
+	    No optional questions to display
 	    {% endif %}	
 	
 	</form>
