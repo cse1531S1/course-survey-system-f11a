@@ -70,16 +70,9 @@ def staffdashboard():
 #STUDENT DASHBOARD
 @app.route('/student/dashboard')
 def studentdashboard():
-	usersurveys = currentuser.getNotCompleted()#list of courses assigned to student
-	tobeanswered = []
-	for survey in usersurveys:
-		surveyobj = allSurveys.getSurveyByName(survey)
-
-		#if survey object exists for that course and it is in review phase
-		if surveyobj:
-			if surveyobj.getStage() == 2:
-				tobeanswered.append(surveyobj)
-
+	print("Calling populateStudentSurveys")
+	currentuser.populateStudentSurveys(allSurveys.getSurveyList())
+	tobeanswered = currentuser.getNotCompleted()
 	return render_template('studentDashboard.html', sanswered = tobeanswered)
 
 
@@ -252,7 +245,9 @@ def finishedReview():
 @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
 def survey(surveyName):
 	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
+	print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
 	questionlist = []
 	resplist = [] #list of all responses
 
@@ -260,18 +255,20 @@ def survey(surveyName):
 	for q in allqinsurvey:
 		questionlist.append(allQuestions.getQuestion(q))
 
+	print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
 
 	if request.method == 'POST':
 		#for each qid
 		for question in thisSurvey.getQuestions():
 			if request.form.get(question.getQuestionString(question)):
+				print("If statement being entered") #NOT BEING ETNERED
 				resplist.append(request.form.get(question.getQuestionName()))
 		
 		thisSurvey.responsePool.addResponse(resplist)
 		currentuser.nowCompleted(surveyName)
 		return redirect(url_for("studentSurveySubmitted"))
 
-	return render_template('survey.html', qlist = questionlist)
+	return render_template('survey.html', questions = questionlist)
 
 #SURVEY COMPLETED	
 @app.route ('/student/surveySubmitted')

@@ -1,17 +1,6 @@
 import sqlite3
 import csv
 
-# So what we want to do is
-# On survey creation, we want to create a database
-# What needs to be unique about this database?
-# Merely the name
-# It needs to have two tables:
-# Questions needs to have 20 columns as above
-# Responses needs to have 21 columns
-# So what I need is a createSurveyDB function under sqlwriter
-# Which given a string, will create the database
-# Pretty straight forward
-
 class Authentication(object):
 	def __init__(self):
 		self._dbName = "Users.db"
@@ -42,7 +31,10 @@ class Authentication(object):
 				newUser.setPermission(2)
 			#Set courses
 			response = writer.selectid(self._dbName, 'Enrolments',(username,))
-			newUser.addCourse(response[0][1])
+			for r in response:
+				strVersion = str(r[1])
+				print("Adding: " + strVersion)
+				newUser.addCourse(strVersion)
 			#Return user object
 			return newUser
 
@@ -112,6 +104,25 @@ class User(object):
 
 	def setClosedSurveys(self,newClosedSurveys):
 		self._closedSurveys = newClosedSurveys
+
+	def resetCourses(self):
+		self._notCompletedSurveys = []
+		self._closedSurveys = []
+
+	def populateStudentSurveys(self, surveyList):
+		# Presuming that the user course list has properly been set
+		#Search through surveyList, checking if course names are within our courseList
+		#If so, check their current state, and add them to notCompleted if level 2, or closed if level 3
+		self.resetCourses()
+		myCourses = self.getCourses()
+		for s in surveyList:
+			print("Checking " + s.getCourseName())
+			if s.getCourseName() in myCourses:
+				print("It was in our courses!")
+				if s.getStage() == 2:
+					self._notCompletedSurveys.append(s)
+				elif s.getStage():
+					self._closedSurveys.append(s)
 
 class SurveyPool(object):
 	def __init__(self):
