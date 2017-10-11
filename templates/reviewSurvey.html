@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>Course Selection</title>
+<title>Staff Survey Review</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -17,8 +17,57 @@
 	
 	<h3>Questions added by admin:</h3>
 	
+	{% if manqlist %}
+	
+	{% for q in manqlist %}
+	    {{q.getQuestionString()}}
+	    {% if q.getAnswerType() %}
+	        (MCQ)
+	    {% else %}
+	        (TEXT)
+	    {% endif %}<br>
+	{% endfor %}
+	
+	{% else %}
+	    No madatory questions selected by admin. 
+	{% endif%}
+	
 	
 	<h3>Choose optional questions</h3>
+	
+	<Form method="POST">
+	{% if opqlist %}
 		
+			{% for q in opqlist %}
+				<input class = "w3-check" type="checkbox" name="{{ q }}">
+				<label>{{q.getQuestionString()}}</label>
+			    {% if q.getAnswerType() %}
+	                (MCQ)
+	            {% else %}
+	                (TEXT)
+	            {% endif %}
+	            <br>
+			{% endfor %}      	
+	{%else%}
+		No optional questions are available. 
+	{% endif %}
+	<br>
+    	<button class=w3-button" type = "submit" name = "save">Save</button>
+	</Form>
+	
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
