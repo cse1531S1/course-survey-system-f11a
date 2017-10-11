@@ -145,6 +145,19 @@ def newsurvey():
 
 	#pass though dictionary of courses with semester as keys and sem list as key list
 	return render_template('chooseSession.html', courses = courses_list, semesters = semesters)
+	
+#VIEW ACTIVE SURVEYS
+@app.route('/admin/viewSurveysList') 
+def viewActiveSurveys():
+    slist = allSurveys.getSurveyList()
+    slive = []
+    
+    for s in slist:
+        if s.getStage() == 2:
+            slive.append(s)
+            
+    #Pass through live surveys list
+    return render_template('viewSurveyList.html', surveyList = slive)
 
 #SELECT QUESTIONS PAGE
   
@@ -192,41 +205,44 @@ def questionselected():
 		return render_template('adminSurveySubmitted.html')   
     
 #choose optional questions
-@app.route('/staff/reviewSurvey/<surveyName>')
+@app.route('/staff/reviewSurvey/<surveyName>', methods=["GET","POST"])
 def reviewSurvey(surveyName):
-	thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
-	allqinsurvey = thisSurvey.getQuestions() #list of questionids
-	allq = allQuestions.getQuestionList()#allq has all quesions from pool
-	questionlist = []
-	optionallist = []
 
-	#find out all mandatory questions for this survey
-	for manq in allqinsurvey:
-		questionlist.append(allQuestions.getQuestion(manq))
+    thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
+    allqinsurvey = thisSurvey.getQuestions() #list of questionids
+    allq = allQuestions.getQuestionList()#allq has all quesions from pool
+    questionlist = []
+    optionallist = []
+        
+    #find out all mandatory questions for this survey
+    for manq in allqinsurvey:
+        questionlist.append(allQuestions.getQuestion(manq))
 
-	#pick all optional questions
-	for opq in allq:
-		if opq.getIsMandatory() == 0:
-			optionallist.append(opq)
-	print("manlist", questionlist)
-	print("optionallist", optionallist)
-	if request.method == 'POST':
-		for q in opqlist:
-			if request.form[q] != NULL:
-				thisSurvey.addQuestion(q)
-		
-		thisSurvey.setStage(1)
-		currentuser.nowCompleted(surveyName)
+    #pick all optional questions
+    for opq in allq:
+        if opq.getIsMandatory() == 0:
+            optionallist.append(opq)
 
-		return redirect(url_for('finishedReview'))
-	return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
-   
+    if request.method == "POST":  
+        for v in request.form:
+            for q in optionallist:
+                if v == q:
+                    thisSurvey.addQuestion(q)
 
+        thisSurvey.setStage(2)
+        currentuser.nowCompleted(surveyName)
+
+        return redirect(url_for('finishedReview'))
+           
+    return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
+        
 #REVIEW FINISHED
 @app.route('/staff/finishedReview')
 def finishedReview():
-	return render_template('finishedReview.html')
-
+    
+    message = "Survey was sucessfully reviewed." #Make this display if the survey was sucessful or not 
+    
+    return render_template('staffSurveySubmitted.html', message = message)
 
 	
 # SURVEY PAGE
