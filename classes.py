@@ -194,10 +194,10 @@ class SurveyPool(object):
 		writer.dbinserts(self._dbName, surveyName, newSurvey.getStage())
 		return newSurvey
 		
-	def deleteSurvey(self,surveyID):
-		for survey in self._surveys:
-			if(survey.getSurveyID() == surveyID):
-				self._surveys.remove(survey)
+	#def deleteSurvey(self,surveyID):
+	#	for survey in self._surveys:
+	#		if(survey.getSurveyID() == surveyID):
+	#			self._surveys.remove(survey)
 
 	def generatePool(self):
 		#self.clearPool()
@@ -227,7 +227,9 @@ class SurveyPool(object):
 				query = "DELETE FROM QUESTIONS"
 				writer.dbinsert(query,s.getDBName())
 				query = "DELETE FROM RESPONSES"
-				writer.dbinsert(query,s.getDBName())                
+				writer.dbinsert(query,s.getDBName())
+				query = "DELETE FROM USERS"
+				writer.dbinsert(query,s.getDBName())
 				self._surveys.remove(s)
 	            
 class QuestionPool(object):
