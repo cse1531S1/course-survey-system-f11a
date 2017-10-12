@@ -39,7 +39,7 @@
 	{% if opqlist %}
 		
 			{% for q in opqlist %}
-				<input class = "w3-check" type="checkbox" name="{{ q }}">
+				<input class = "w3-check" type="checkbox" name="{{ q.getQuestionID() }}">
 				<label>{{q.getQuestionString()}}</label>
 			    {% if q.getAnswerType() %}
 	                (MCQ)
@@ -52,7 +52,7 @@
 		No optional questions are available. 
 	{% endif %}
 	<br>
-    	<button class=w3-button" type = "submit" name = "save">Save</button>
+    	<button class="w3-button" type = "submit" name = "save">Save</button>
 	</Form>
 	
 </body>
