@@ -330,7 +330,7 @@ class Survey(object):
 
 	#Returns the current list of response objects
 	def getResponses(self):
-		return self._responsePool.getResponses()
+		return self._responsePool.getResponse()
 
 	def setStage(self, stage):
 		self._stage = stage

@@ -298,9 +298,14 @@ def studentSurveySubmitted():
 	
 	
 #VIEW METRICS
-@app.route('/admin/metricsSelection')
-def metrics():
-	return render_template('adminMetricsSelection.html')
+@app.route('/metrics/<surveyName>')
+def metrics(surveyName):
+    thisSurvey = allSurveys.getSurveyByName(surveyName)
+    allresp = thisSurvey.getResponses()
+    if (thisSurvey.getStage() == 2) or (thisSurvey.getStage() == 1 and currentuser.getPermission() == 0):
+        print(allresp)
+	
+    return render_template('adminMetricsSelection.html')
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):
