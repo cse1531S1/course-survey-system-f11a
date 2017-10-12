@@ -10,24 +10,35 @@
 <body>
 
   <!-- Question List -->
-  <h1>Welcome to the sruvey submission form</h1>
+  <h1>Welcome to the survey submission form</h1>
+  <h2>{{ surveyName }}</h2><br>
+  
+  {% if message %}
+    {{ message }}
+  {% endif %}
+  
+  
   {% if questions %}
     {% autoescape false %}
-      <form action="/survey/{{ sem }}/{{ course }}" method="POST">
+      <form method="POST">
       {% for q in questions %}
-        <h3>{{ q }}</h3><br>
-        <input type="radio" name="{{ q }}" value="1"> 1
-        <input type="radio" name="{{ q }}" value="2"> 2
-        <input type="radio" name="{{ q }}" value="3"> 3
-        <input type="radio" name="{{ q }}" value="4"> 4
-        <input type="radio" name="{{ q }}" value="5"> 5
-        <br>
+        <h3>{{ q.getQuestionString() }}</h3>
+        {% if q.getAnswerType() %}
+            <input type="radio" name="{{ q.getQuestionID() }}" value="1"> 1
+            <input type="radio" name="{{ q.getQuestionID() }}" value="2"> 2
+            <input type="radio" name="{{ q.getQuestionID() }}" value="3"> 3
+            <input type="radio" name="{{ q.getQuestionID() }}" value="4"> 4
+            <input type="radio" name="{{ q.getQuestionID() }}" value="5"> 5
+        {% else %}
+            <input type="text" placeholder="Please enter answer" name="{{ q.getQuestionID() }}">
+        {% endif %}
+        <br>--------------------------------------------<br>
       {% endfor %}
       <input type="submit" value="Submit">
       </form>
     {% endautoescape %}
   {%else%}
-    No questions have been submitted
+    No questions have been submitted.
   {% endif %}
 
 <!-- Page content -->

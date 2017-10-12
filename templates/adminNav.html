@@ -2,7 +2,23 @@
 	<div class="w3-container">
 		<div class="w3-bar w3-light-grey">
 		    <a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
-		    <a href="/metrics" class="w3-bar-item w3-button w3-right">Metrics</a> <!-- This should be a dropdown with all survey metrics -->
+		    {% if metricsViewable %}
+		    <div class="w3-dropdown-hover w3-right">
+	 			<button class="w3-button">Metrics</button>
+	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">
+	 			    {% if slive %}
+	 			        {% for survey in slive %}
+	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
+	 			        {% endfor %}
+	 			    {% endif %}
+	 			    {% if sreviewed %}
+	 			        {% for survey in sreviewed %}
+	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
+	 			        {% endfor %}
+	 			    {% endif %}
+			    </div>
+			 </div>
+			 {% endif %}
 			<div class="w3-dropdown-hover w3-right">
 	 			<button class="w3-button">View</button>
 	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">

@@ -28,7 +28,7 @@
 	            {% else %}
 	                (TEXT)
 	            {% endif %}         
-	             <button type="button" value={{q}}>Remove</button><br>
+	             <button type="submit" value="{{q.getQuestionID()}}" name = "submit">Remove</button><br>
 	        {% endfor %}
 	    {% else %}
 	    No mandatory questions to display
@@ -44,7 +44,7 @@
 	            {% else %}
 	                (TEXT)
 	            {% endif %} 
-	            <button type="button" value={{q}}>Remove</button><br>
+	            <button type="submit" value="{{q.getQuestionID()}}" name = "submit">Remove</button><br>
 	        {% endfor %}
 	    {% else %}
 	    No optional questions to display

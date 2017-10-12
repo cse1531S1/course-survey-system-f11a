@@ -39,18 +39,20 @@ def admindashboard():
 	slive = []
 	questionlist = []
 	
+	metricsViewable = True;
+	
 	for s in slist:
 		if s.getStage() == 1:
 			tobereviewed.append(s)
 		if s.getStage() == 2:
 			slive.append(s)
 
-	qlist = allQuestions.getQuestionList()
+	qlist = allQuestions.getVisibleQuestions()
 	
 	for q in qlist:
 		questionlist.append(q)
 
-	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive)
+	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive,            metricsViewable = metricsViewable)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
@@ -99,7 +101,6 @@ def addquestions():
             	questiontype = 0
             if etype == "text":
             	entrytype = 0
-
             allQuestions.addQuestion(question, entrytype, questiontype)
 
         return redirect(url_for('addedquestions'))
@@ -112,19 +113,26 @@ def addedquestions():
     
 
 #QUESTION LIST PAGE
-@app.route('/admin/allQuestions')
+@app.route('/admin/allQuestions',methods=["GET","POST"])
 def questionlist():
-    qlist = allQuestions.getQuestionList()
+    qlist = allQuestions.getVisibleQuestions()
     
     mandatoryq = []
     optionalq = []
     
+    if request.method == 'POST':
+    	print(request.form["submit"])
+    	for q in qlist:
+    		if(int(q.getQuestionID()) == int(request.form["submit"])):
+    			q.disableQuestion()
+
+    qlist = allQuestions.getVisibleQuestions()
+
     for q in qlist:
     	if q.getIsMandatory():
     		mandatoryq.append(q)
     	else:
     		optionalq.append(q)
-
     #need to ask about delete question interface
 
     return render_template('allQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
@@ -140,11 +148,16 @@ def newsurvey():
 	return render_template('chooseSession.html', courses = courses_list, semesters = semesters)
 	
 #VIEW ACTIVE SURVEYS
-@app.route('/admin/viewSurveysList') 
+@app.route('/admin/viewSurveysList',methods=["GET","POST"]) 
 def viewActiveSurveys():
     slist = allSurveys.getSurveyList()
     slive = []
     
+    if request.method == 'POST':
+        for s in slist:
+            if(s.getCourseName() == request.form["submit"]):
+                s.setStage(3)
+
     for s in slist:
         if s.getStage() == 2:
             slive.append(s)
@@ -164,7 +177,7 @@ def courseObject(semestername, coursename):
 		surveyname = coursename+semestername
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
-		qlist = allQuestions.getQuestionList()
+		qlist = allQuestions.getVisibleQuestions()
 
 		for v in request.form:
 			for q in qlist:
@@ -174,7 +187,7 @@ def courseObject(semestername, coursename):
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
-		qlist = allQuestions.getQuestionList()	
+		qlist = allQuestions.getVisibleQuestions()	
 		mandatoryQ = []
 		TEXTquestions = []
 		for q in qlist:
@@ -203,7 +216,7 @@ def reviewSurvey(surveyName):
 
     thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
     allqinsurvey = thisSurvey.getQuestions() #list of questionids
-    allq = allQuestions.getQuestionList()#allq has all quesions from pool
+    allq = allQuestions.getVisibleQuestions()#allq has all quesions from pool
     questionlist = []
     optionallist = []
         
@@ -244,31 +257,39 @@ def finishedReview():
 
 @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
 def survey(surveyName):
-	thisSurvey = allSurveys.getSurveyByName(surveyName)
-	print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
-	allqinsurvey = thisSurvey.getQuestions() #list of questionids
-	print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
-	questionlist = []
-	resplist = [] #list of all responses
+    thisSurvey = allSurveys.getSurveyByName(surveyName)
+    print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
+    allqinsurvey = thisSurvey.getQuestions() #list of questionids
+    print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
+    questionlist = []
+    resplist = [] #list of all responses
+    
+    #find out all questions for this survey
+    for qId in allqinsurvey:
+        questionlist.append(allQuestions.getQuestion(qId))
+        
+    print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
 
-	#find out all questions for this survey
-	for q in allqinsurvey:
-		questionlist.append(allQuestions.getQuestion(q))
+    if request.method == 'POST':
+        failedSurvey = False
+        #for each qid
+        for qId in thisSurvey.getQuestions():
+            if request.form.get(qId):
+                print("If statement being entered") #NOT BEING ETNERED
+                resplist.append(request.form.get(qId))
+            #else invalid survey entry
+            else:
+                failedSurvey = True
+                
+        if failedSurvey:
+            message = "ERROR: Please enter a response to all questions"
+            return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
+        else:
+            thisSurvey.responsePool.addResponse(resplist)
+            currentuser.nowCompleted(surveyName)
+            return redirect(url_for("studentSurveySubmitted"))
 
-	print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
-
-	if request.method == 'POST':
-		#for each qid
-		for question in thisSurvey.getQuestions():
-			if request.form.get(question.getQuestionString(question)):
-				print("If statement being entered") #NOT BEING ETNERED
-				resplist.append(request.form.get(question.getQuestionName()))
-		
-		thisSurvey.responsePool.addResponse(resplist)
-		currentuser.nowCompleted(surveyName)
-		return redirect(url_for("studentSurveySubmitted"))
-
-	return render_template('survey.html', questions = questionlist)
+    return render_template('survey.html', questions = questionlist, surveyName = surveyName)
 
 #SURVEY COMPLETED	
 @app.route ('/student/surveySubmitted')
