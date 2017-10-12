@@ -345,6 +345,16 @@ def metrics(surveyName):
 		resplist = thisSurvey.getResponses()
 		print("all responses object", resplist)
 	return render_template('metrics.html', resplist = resplist)
+
+
+@app.route('/student/metrics/<surveyName>')
+def studentMetrics(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	allresponses = []
+	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
+		resplist = thisSurvey.getResponses()
+		print("all responses object", resplist)
+	return render_template('studentmetrics.html', resplist = resplist)
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):

@@ -27,7 +27,7 @@
 	<h3>Released survey results</h3>
 	{% if sclosed %}
 	    {% for survey in sclosed %}
-	        <a href="/metrics/{{ survey }}" class="w3-bar-item w3-button">{{ survey }}</a>
+	        <a href="/student/metrics/{{ survey }}" class="w3-bar-item w3-button">{{ survey }}</a>
 	        <br>
 	    {% endfor %}
 	{% else %}
