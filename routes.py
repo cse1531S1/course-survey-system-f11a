@@ -175,6 +175,8 @@ def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		if allSurveys.getSurveyByName(surveyname):
+		    allSurveys.deleteSurvey(surveyname)
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
 		qlist = allQuestions.getVisibleQuestions()
@@ -215,8 +217,11 @@ def questionselected():
 def reviewSurvey(surveyName):
 
     thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
+    print("The survey we just got is: " + thisSurvey.getCourseName())
     allqinsurvey = thisSurvey.getQuestions() #list of questionids
+    print("The number of questions in this survey is: " + str(len(allqinsurvey)))
     allq = allQuestions.getVisibleQuestions()#allq has all quesions from pool
+    print("The number of questions globally is: "+ str(len(allq)))
     questionlist = []
     optionallist = []
         
@@ -229,14 +234,17 @@ def reviewSurvey(surveyName):
         if opq.getIsMandatory() == 0:
             optionallist.append(opq)
 
-    if request.method == "POST":  
+    if request.method == "POST": 
+        print("The information being sent is: ")
+        print(request.form) 
         for v in request.form:
             for q in optionallist:
-                if v == q:
-                    thisSurvey.addQuestion(q)
+                if v == str(q.getQuestionID()):
+                	print("*************YAAAHS************")
+                	thisSurvey.addQuestion(q)
 
         thisSurvey.setStage(2)
-        currentuser.nowCompleted(surveyName)
+        #currentuser.nowCompleted(surveyName)
 
         return redirect(url_for('finishedReview'))
            
@@ -257,39 +265,52 @@ def finishedReview():
 
 @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
 def survey(surveyName):
-    thisSurvey = allSurveys.getSurveyByName(surveyName)
-    print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
-    allqinsurvey = thisSurvey.getQuestions() #list of questionids
-    print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
-    questionlist = []
-    resplist = [] #list of all responses
-    
-    #find out all questions for this survey
-    for qId in allqinsurvey:
-        questionlist.append(allQuestions.getQuestion(qId))
-        
-    print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
+	allqinsurvey = thisSurvey.getQuestions() #list of questionids
+	print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
+	questionlist = []
+	resplist = [] #list of all responses
 
-    if request.method == 'POST':
-        failedSurvey = False
-        #for each qid
-        for qId in thisSurvey.getQuestions():
-            if request.form.get(qId):
-                print("If statement being entered") #NOT BEING ETNERED
-                resplist.append(request.form.get(qId))
-            #else invalid survey entry
-            else:
-                failedSurvey = True
-                
-        if failedSurvey:
-            message = "ERROR: Please enter a response to all questions"
-            return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
-        else:
-            thisSurvey.responsePool.addResponse(resplist)
-            currentuser.nowCompleted(surveyName)
-            return redirect(url_for("studentSurveySubmitted"))
+	#find out all questions for this survey
+	for qId in allqinsurvey:
+		questionlist.append(allQuestions.getQuestion(qId))
+		
+	print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
 
-    return render_template('survey.html', questions = questionlist, surveyName = surveyName)
+	if request.method == 'POST':
+		print("********")
+		print(request.form)
+		print("********")
+		
+		#for each qid
+		for v in request.form:
+			failedQuestion = True #assume true
+			#print("****Iteration of outer loop")
+			#print("We're checking:" + str(v))
+			for q in questionlist:
+				#print("Iteration of inner loop")
+				#print("We're: "+str(q.getQuestionID()))
+				if str(v) == str(q.getQuestionID()):
+					if(request.form[str(q.getQuestionID())]):
+						#print ("SUCCESS****")
+						#print("Our form index: " + str(v))
+						#print("Our qID: " + str(qId))
+						#print(request.form[str(q.getQuestionID())]) #DEBUG LINE
+						resplist.append(request.form[str(q.getQuestionID())])
+						failedQuestion = False
+
+			if (failedQuestion == True):
+					print("Failed survey on question: " + allQuestions.getQuestion(int(qId)).getQuestionString() )
+					message = "ERROR: Please enter a response to all questions"
+					return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
+		
+		# sucessful survey entry 		
+		thisSurvey.addResponse(resplist)
+		currentuser.nowCompleted(surveyName)
+		return redirect(url_for("studentSurveySubmitted"))
+
+	return render_template('survey.html', questions = questionlist, surveyName = surveyName)
 
 #SURVEY COMPLETED	
 @app.route ('/student/surveySubmitted')
