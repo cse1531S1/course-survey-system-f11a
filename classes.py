@@ -175,7 +175,17 @@ class SurveyPool(object):
 		query = "DELETE FROM Surveys"
 		writer.dbinsert(query, self._dbName)
 		self._surveys = []
-
+		
+	def deleteSurvey(self, surveyname):
+		for s in self._surveys:
+			if s.getCourseName() == surveyname:
+				writer = SQLWriter()
+				query = "DELETE FROM QUESTIONS"
+				writer.dbinsert(query,s.getDBName())
+				query = "DELETE FROM RESPONSES"
+				writer.dbinsert(query,s.getDBName())                
+				self._surveys.remove(s)
+	            
 class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
@@ -358,6 +368,8 @@ class Survey(object):
 		writer.dbinsert(query, self._dbName)
 		self._questionList = []
 		self._responsePool.clearPool()
+	def getDBName(self):
+	    return self._dbName
 
 class Question(object):
 	def __init__(self, questionID, qString, answerType, isMandatory, isVisible):

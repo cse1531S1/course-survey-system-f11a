@@ -175,6 +175,8 @@ def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		if allSurveys.getSurveyByName(surveyname):
+		    allSurveys.deleteSurvey(surveyname)
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
 		qlist = allQuestions.getVisibleQuestions()
