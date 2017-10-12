@@ -238,9 +238,8 @@ class ResponsePool(object):
 
 	#Given a response list, add it to the database and the pool
 	def addResponse(self,responseList):
-		newResponse = Response(responseList, self._currentID)
-		self._currentID+=1
 		writer = SQLWriter()
+		rid = writer.dbGetNextRUniqueID(self._dbName)
 		#So we go through the response object, and pad it out
 		#Should work as per https://stackoverflow.com/questions/8316176/insert-list-into-my-database-using-python
 		toInsert = []
@@ -251,6 +250,8 @@ class ResponsePool(object):
 				toInsert.append("")
 		query = "INSERT INTO Responses (q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20) VALUES %r" % (tuple(toInsert))
 		writer.dbinsert(query, self._dbName)
+		newResponse = Response(responseList,rid)
+	
 		self._responses.append(newResponse)
 
 	def getResponse(self,responseID):
@@ -468,6 +469,17 @@ class SQLWriter(object):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
 		temp = cursorObj.execute("SELECT max(QID) FROM QUESTIONS")
+		retVal = cursorObj.fetchone()[0]
+		retVal +=1
+		connection.commit()
+
+		cursorObj.close()
+		return retVal
+
+	def dbGetNextRUniqueID(self, dbName):
+		connection = sqlite3.connect(dbName)
+		cursorObj = connection.cursor()
+		temp = cursorObj.execute("SELECT max(RID) FROM RESPONSES")
 		retVal = cursorObj.fetchone()[0]
 		retVal +=1
 		connection.commit()
