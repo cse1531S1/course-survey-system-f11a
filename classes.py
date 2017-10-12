@@ -1,5 +1,15 @@
 import sqlite3
 import csv
+# So what we need to do, is:
+# Each database also has a table with a USERSCOMPLETED column
+# On submission of a survey, we need to add that user to that completed columnn
+# We need a function to:
+# Dynamically create this column
+# Given a user ID, add it to the column
+# Given a user ID, determine whether or not it's in the column
+
+#So we have an issue
+#
 
 class Authentication(object):
 	def __init__(self):
@@ -18,7 +28,7 @@ class Authentication(object):
 
 	#Given a username, will return a user object
 	def LoginUser(self, username):
-		newUser = User(0)
+		newUser = User(0,str(username))
 		if(username == "admin"):
 			return newUser
 		else:
@@ -61,25 +71,56 @@ class Authentication(object):
 		writer.dbinsert(query, self._dbName)
 
 class User(object):
-	def __init__(self, permLevel):
+	def __init__(self, permLevel, idString):
 		self._dbName = "Users.db"
 		self._permLevel = permLevel
 		self._courses = []
 		self._notCompletedSurveys = []
 		self._closedSurveys = []
+		self._UID = idString
+#		self.__unfilled = []
 
 	def addCourse(self,courseID):
 		self._courses.append(courseID)
-		self._notCompletedSurveys.append(courseID)
+#		self._unfilled.append(courseID)
 
+#	def filledIn(self, courseID):
+#		for c in self._unfilled:
+#			if c == courseID:
+#				self._unfilled.remove(c)
+
+#	def unfilled(self):
+#		return self._unfilled
+	
 	def addClosedSurveys(self,courseID):
 		self._closedSurveys.append(course)
 
+	def getUID(self):
+		return self._UID
+
 	#Given a course ID, add it to the list of closed surveys
 	def nowCompleted(self,courseID):
+		#print("NOW COMPLETED BEING ENTERED")
+		#print("NOTE COMPLETED SURVEYS ARE: ")
+		#print(self._notCompletedSurveys)
+		#print("TOTAL COURSES ARE: ")
+		#print (self._courses)
+		i = 0
 		for course in self._notCompletedSurveys:
-			if(course == courseID):
-				self._notCompletedSurveys.remove(course)
+			#print("*************")
+			#print("In nowCompleted, we're comparing:")
+			#print(course.getCourseName())
+			#print(courseID)
+			if course.getCourseName() == courseID:
+				del self._notCompletedSurveys[i]
+			i += 1
+		self._closedSurveys.append(courseID)
+		
+		i = 0
+		for course in self._courses:
+			if course == courseID:
+				del self._courses[i]
+			i += 1
 
 	def getPermission(self):
 		return self._permLevel		
@@ -105,24 +146,27 @@ class User(object):
 	def setClosedSurveys(self,newClosedSurveys):
 		self._closedSurveys = newClosedSurveys
 
-	def resetCourses(self):
-		self._notCompletedSurveys = []
-		self._closedSurveys = []
-
 	def populateStudentSurveys(self, surveyList):
 		# Presuming that the user course list has properly been set
 		#Search through surveyList, checking if course names are within our courseList
 		#If so, check their current state, and add them to notCompleted if level 2, or closed if level 3
-		self.resetCourses()
-		myCourses = self.getCourses()
-		for s in surveyList:
+		allClear = True
+		myCourses = self.getCourses() #These are the classes I should grab if they exist
+		for s in surveyList: #For each survey currently there
+			allClear = True
 			print("Checking " + s.getCourseName())
-			if s.getCourseName() in myCourses:
-				print("It was in our courses!")
-				if s.getStage() == 2:
-					self._notCompletedSurveys.append(s)
-				elif s.getStage():
-					self._closedSurveys.append(s)
+			if s.getCourseName() in myCourses: #It was in our courses :D
+				for sv in self._closedSurveys:
+					print("We've listed as closed: "+sv)
+					if sv == s.getCourseName():
+						allClear = False
+				if(s.hasUser(str(self.getUID()))):
+					allClear = False
+				if allClear:
+					if s.getStage() == 2:
+						self._notCompletedSurveys.append(s)
+					elif s.getStage():
+						self._closedSurveys.append(s)
 
 class SurveyPool(object):
 	def __init__(self):
@@ -150,10 +194,10 @@ class SurveyPool(object):
 		writer.dbinserts(self._dbName, surveyName, newSurvey.getStage())
 		return newSurvey
 		
-	def deleteSurvey(self,surveyID):
-		for survey in self._surveys:
-			if(survey.getSurveyID() == surveyID):
-				self._surveys.remove(survey)
+	#def deleteSurvey(self,surveyID):
+	#	for survey in self._surveys:
+	#		if(survey.getSurveyID() == surveyID):
+	#			self._surveys.remove(survey)
 
 	def generatePool(self):
 		#self.clearPool()
@@ -183,7 +227,9 @@ class SurveyPool(object):
 				query = "DELETE FROM QUESTIONS"
 				writer.dbinsert(query,s.getDBName())
 				query = "DELETE FROM RESPONSES"
-				writer.dbinsert(query,s.getDBName())                
+				writer.dbinsert(query,s.getDBName())
+				query = "DELETE FROM USERS"
+				writer.dbinsert(query,s.getDBName())
 				self._surveys.remove(s)
 	            
 class QuestionPool(object):
@@ -372,8 +418,22 @@ class Survey(object):
 		writer.dbinsert(query, self._dbName)
 		self._questionList = []
 		self._responsePool.clearPool()
+
 	def getDBName(self):
 	    return self._dbName
+
+	def addUser(self, uid):
+		writer = SQLWriter()
+		query = "INSERT INTO USERS VALUES ('%s')" % uid
+		writer.dbinsert(query, self._dbName)
+
+	def hasUser(self, uid):
+		writer = SQLWriter()
+		query = "SELECT * FROM USERS WHERE UID = '%s';" % uid
+		isThere = writer.dbselect(query, self._dbName)
+		if(isThere):
+			return True
+		return False
 
 class Question(object):
 	def __init__(self, questionID, qString, answerType, isMandatory, isVisible):
@@ -534,5 +594,6 @@ class SQLWriter(object):
 				Q19 TEXT,
 				Q20 TEXT)
 		''')
+		cursorObj.execute(''' CREATE TABLE IF NOT EXISTS USERS (UID TEXT)''')
 		connection.commit();
 		cursorObj.close();
