@@ -214,7 +214,7 @@ def reviewSurvey(surveyName):
 
     thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
     allqinsurvey = thisSurvey.getQuestions() #list of questionids
-    allq = allQuestions.getQuestionList()#allq has all quesions from pool
+    allq = allQuestions.getVisibleQuestions()#allq has all quesions from pool
     questionlist = []
     optionallist = []
         
