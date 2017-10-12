@@ -2,6 +2,7 @@
 	<div class="w3-container">
 		<div class="w3-bar w3-light-grey">
 		    <a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
+		    {% if metricsViewable %}
 		    <div class="w3-dropdown-hover w3-right">
 	 			<button class="w3-button">Metrics</button>
 	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">
@@ -17,6 +18,7 @@
 	 			    {% endif %}
 			    </div>
 			 </div>
+			 {% endif %}
 			<div class="w3-dropdown-hover w3-right">
 	 			<button class="w3-button">View</button>
 	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">

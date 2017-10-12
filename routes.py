@@ -39,6 +39,8 @@ def admindashboard():
 	slive = []
 	questionlist = []
 	
+	metricsViewable = True;
+	
 	for s in slist:
 		if s.getStage() == 1:
 			tobereviewed.append(s)
@@ -50,7 +52,7 @@ def admindashboard():
 	for q in qlist:
 		questionlist.append(q)
 
-	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive)
+	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive,            metricsViewable = metricsViewable)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
