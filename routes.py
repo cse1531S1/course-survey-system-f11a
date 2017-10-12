@@ -304,7 +304,7 @@ def metrics(surveyName):
     allresp = thisSurvey.getResponses()
     if (thisSurvey.getStage() == 2) or (thisSurvey.getStage() == 1 and currentuser.getPermission() == 0):
         print(allresp)
-	
+        
     return render_template('adminMetricsSelection.html')
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
