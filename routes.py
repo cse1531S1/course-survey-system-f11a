@@ -177,7 +177,7 @@ def courseObject(semestername, coursename):
 		surveyname = coursename+semestername
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
-		qlist = allQuestions.getQuestionList()
+		qlist = allQuestions.getVisibleQuestions()
 
 		for v in request.form:
 			for q in qlist:
@@ -187,7 +187,7 @@ def courseObject(semestername, coursename):
 	
 	#Else, get questionlist from pool, and display these onto the screen as checkboxes
 	else:
-		qlist = allQuestions.getQuestionList()	
+		qlist = allQuestions.getVisibleQuestions()	
 		mandatoryQ = []
 		TEXTquestions = []
 		for q in qlist:
