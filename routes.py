@@ -217,8 +217,11 @@ def questionselected():
 def reviewSurvey(surveyName):
 
     thisSurvey = allSurveys.getSurveyByName(surveyName)#get survey object
+    print("The survey we just got is: " + thisSurvey.getCourseName())
     allqinsurvey = thisSurvey.getQuestions() #list of questionids
+    print("The number of questions in this survey is: " + str(len(allqinsurvey)))
     allq = allQuestions.getVisibleQuestions()#allq has all quesions from pool
+    print("The number of questions globally is: "+ str(len(allq)))
     questionlist = []
     optionallist = []
         
@@ -231,14 +234,17 @@ def reviewSurvey(surveyName):
         if opq.getIsMandatory() == 0:
             optionallist.append(opq)
 
-    if request.method == "POST":  
+    if request.method == "POST": 
+        print("The information being sent is: ")
+        print(request.form) 
         for v in request.form:
             for q in optionallist:
-                if v == q:
-                    thisSurvey.addQuestion(q)
+                if v == str(q.getQuestionID()):
+                	print("*************YAAAHS************")
+                	thisSurvey.addQuestion(q)
 
         thisSurvey.setStage(2)
-        currentuser.nowCompleted(surveyName)
+        #currentuser.nowCompleted(surveyName)
 
         return redirect(url_for('finishedReview'))
            
