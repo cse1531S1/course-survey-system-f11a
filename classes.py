@@ -195,9 +195,9 @@ class QuestionPool(object):
 
 	def addQuestion(self, qString, answerType, isMandatory):
 		writer = SQLWriter()
-		writer.dbinsertq(self._dbName, answerType, isMandatory, qString)
+		writer.dbinsertq(self._dbName, answerType, isMandatory, qString, 1)
 		qid = writer.dbGetNextUniqueID(self._dbName)
-		q = Question(qid, qString, answerType, isMandatory)
+		q = Question(qid, qString, answerType, isMandatory, 1)
 		self._questions.append(q)		
 
 	def generatePool(self):
@@ -206,7 +206,7 @@ class QuestionPool(object):
 		query = "SELECT * FROM QUESTIONS"
 		qList = writer.dbselect(query, self._dbName)
 		for q in qList:
-			newq = Question(q[0], q[3], q[1], q[2])
+			newq = Question(q[0], q[3], q[1], q[2], q[4])
 			self._questions.append(newq)
 
 	def storePool(self):
@@ -223,6 +223,13 @@ class QuestionPool(object):
 
 	def getQuestionList(self):
 		return self._questions
+
+	def getVisibleQuestions(self):
+		qlist = []
+		for q in self._questions:
+			if q.isValidQuestion():
+				qlist.append(q)
+		return qlist
 
 class ResponsePool(object):
 	def __init__(self, dbName):
@@ -356,11 +363,12 @@ class Survey(object):
 		self._responsePool.clearPool()
 
 class Question(object):
-	def __init__(self, questionID, qString, answerType, isMandatory):
+	def __init__(self, questionID, qString, answerType, isMandatory, isVisible):
 		self._questionID = questionID
 		self._question = qString
 		self._answerType = answerType
 		self._isMandatory = isMandatory
+		self._isVisible = isVisible
 
 	def getQuestionID(self):
 		return self._questionID
@@ -373,6 +381,15 @@ class Question(object):
 
 	def getIsMandatory(self):
 		return self._isMandatory
+
+	def disableQuestion(self):
+		self._isVisible = 0
+		writer = SQLWriter()
+		query = "UPDATE QUESTIONS SET VISIBILITY = 0 WHERE QID = %d;" % self.getQuestionID()
+		writer.dbinsert(query, "InitData.db")
+
+	def isValidQuestion(self):
+		return self._isVisible
 
 class Response(object):
 	def __init__(self, responses, ID):
@@ -435,10 +452,10 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 
-	def dbinsertq(self, dbName, mc, man, qstr):
+	def dbinsertq(self, dbName, mc, man, qstr, vis):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		cursorObj.execute("INSERT INTO Questions (ISMCFLAG, ISMANFLAG, QSTRING) VALUES(?, ?, ?)", (mc, man, qstr))
+		cursorObj.execute("INSERT INTO Questions (ISMCFLAG, ISMANFLAG, QSTRING, VISIBILITY) VALUES(?, ?, ?,?)", (mc, man, qstr,vis))
 		connection.commit()
 		cursorObj.close()
 
@@ -453,8 +470,11 @@ class SQLWriter(object):
 	def dbGetNextUniqueID(self, dbName):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
-		retVal = cursorObj.execute("SELECT last_insert_rowid()")
+		temp = cursorObj.execute("SELECT max(QID) FROM QUESTIONS")
+		retVal = cursorObj.fetchone()[0]
+		retVal +=1
 		connection.commit()
+
 		cursorObj.close()
 		return retVal
 

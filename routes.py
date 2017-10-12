@@ -45,7 +45,7 @@ def admindashboard():
 		if s.getStage() == 2:
 			slive.append(s)
 
-	qlist = allQuestions.getQuestionList()
+	qlist = allQuestions.getVisibleQuestions()
 	
 	for q in qlist:
 		questionlist.append(q)
@@ -99,7 +99,6 @@ def addquestions():
             	questiontype = 0
             if etype == "text":
             	entrytype = 0
-
             allQuestions.addQuestion(question, entrytype, questiontype)
 
         return redirect(url_for('addedquestions'))
@@ -112,19 +111,26 @@ def addedquestions():
     
 
 #QUESTION LIST PAGE
-@app.route('/admin/allQuestions')
+@app.route('/admin/allQuestions',methods=["GET","POST"])
 def questionlist():
-    qlist = allQuestions.getQuestionList()
+    qlist = allQuestions.getVisibleQuestions()
     
     mandatoryq = []
     optionalq = []
     
+    if request.method == 'POST':
+    	print(request.form["submit"])
+    	for q in qlist:
+    		if(int(q.getQuestionID()) == int(request.form["submit"])):
+    			q.disableQuestion()
+
+    qlist = allQuestions.getVisibleQuestions()
+
     for q in qlist:
     	if q.getIsMandatory():
     		mandatoryq.append(q)
     	else:
     		optionalq.append(q)
-
     #need to ask about delete question interface
 
     return render_template('allQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
