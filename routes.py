@@ -175,6 +175,8 @@ def courseObject(semestername, coursename):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		if allSurveys.getSurveyByName(surveyname):
+		    allSurveys.deleteSurvey(surveyname)
 		thisSurvey = allSurveys.addSurvey(surveyname) #TODO: Ensure that the surveyID is being written into the database 
 		thisSurvey.setStage(1) #ALSO make sure qiDs are being written properly
 		qlist = allQuestions.getVisibleQuestions()
@@ -257,39 +259,44 @@ def finishedReview():
 
 @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
 def survey(surveyName):
-    thisSurvey = allSurveys.getSurveyByName(surveyName)
-    print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
-    allqinsurvey = thisSurvey.getQuestions() #list of questionids
-    print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
-    questionlist = []
-    resplist = [] #list of all responses
-    
-    #find out all questions for this survey
-    for qId in allqinsurvey:
-        questionlist.append(allQuestions.getQuestion(qId))
-        
-    print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
+	allqinsurvey = thisSurvey.getQuestions() #list of questionids
+	print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
+	questionlist = []
+	resplist = [] #list of all responses
 
-    if request.method == 'POST':
-        failedSurvey = False
-        #for each qid
-        for qId in thisSurvey.getQuestions():
-            if request.form.get(qId):
-                print("If statement being entered") #NOT BEING ETNERED
-                resplist.append(request.form.get(qId))
-            #else invalid survey entry
-            else:
-                failedSurvey = True
-                
-        if failedSurvey:
-            message = "ERROR: Please enter a response to all questions"
-            return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
-        else:
-            thisSurvey.responsePool.addResponse(resplist)
-            currentuser.nowCompleted(surveyName)
-            return redirect(url_for("studentSurveySubmitted"))
+	#find out all questions for this survey
+	for qId in allqinsurvey:
+		questionlist.append(allQuestions.getQuestion(qId))
+		
+	print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
 
-    return render_template('survey.html', questions = questionlist, surveyName = surveyName)
+	if request.method == 'POST':
+		print("********")
+		print(request.form)
+		print("********")
+		
+		#for each qid
+		for v in request.form:
+			failedQuestion = True #assume true
+			for q in questionlist:
+				if v == str(q.getQuestionID()):
+					if(request.form.get(str(qId))):
+						resplist.append(request.form.get(str(qId)))
+						failedQuestion = False
+
+			if (failedQuestion == True):
+					print("Failed survey on question: " + allQuestions.getQuestion(int(qId)).getQuestionString() )
+					message = "ERROR: Please enter a response to all questions"
+					return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
+		
+		# sucessful survey entry 		
+		thisSurvey.addResponse(resplist)
+		currentuser.nowCompleted(surveyName)
+		return redirect(url_for("studentSurveySubmitted"))
+
+	return render_template('survey.html', questions = questionlist, surveyName = surveyName)
 
 #SURVEY COMPLETED	
 @app.route ('/student/surveySubmitted')
