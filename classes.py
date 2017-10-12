@@ -115,13 +115,30 @@ class User(object):
 		#If so, check their current state, and add them to notCompleted if level 2, or closed if level 3
 		self.resetCourses()
 		myCourses = self.getCourses()
+		print(myCourses)
 		for s in surveyList:
-			print("Checking " + s.getCourseName())
+			print("Checking " ,s.getCourseName(),s.getStage())
 			if s.getCourseName() in myCourses:
 				print("It was in our courses!")
+				print("Stage is", s.getStage())
 				if s.getStage() == 2:
 					self._notCompletedSurveys.append(s)
 				elif s.getStage():
+					self._closedSurveys.append(s)
+
+	def populateStaffSurveys(self, surveyList):
+		#in this understanding, notCompleted = to be reviewed surveys, closed = closed surveys
+		self.resetCourses()
+		myCourses = self.getCourses()
+		print(myCourses)
+		for s in surveyList:
+			print("Checking " ,s.getCourseName(),s.getStage())
+			if s.getCourseName() in myCourses:
+				print("It was in our courses!")
+				print("Stage is", s.getStage())
+				if s.getStage() == 1:
+					self._notCompletedSurveys.append(s)
+				elif s.getStage() == 3:
 					self._closedSurveys.append(s)
 
 class SurveyPool(object):

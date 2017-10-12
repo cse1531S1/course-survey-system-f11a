@@ -37,37 +37,35 @@ def admindashboard():
 	slist = allSurveys.getSurveyList()
 	tobereviewed = []
 	slive = []
+	sclosed = []
 	questionlist = []
 	
-	metricsViewable = True;
+	metricsViewable = True
 	
 	for s in slist:
 		if s.getStage() == 1:
 			tobereviewed.append(s)
 		if s.getStage() == 2:
 			slive.append(s)
+		if s.getStage() == 3:
+			sclosed.append(s)
 
 	qlist = allQuestions.getVisibleQuestions()
 	
 	for q in qlist:
 		questionlist.append(q)
 
-	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive,            metricsViewable = metricsViewable)
+	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive, sclosed = sclosed, metricsViewable = metricsViewable)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
-	usersurveys = currentuser.getNotCompleted()#list of courses assigned to staff
-	tobereviewed = []
-	for survey in usersurveys:
-		surveyobj = allSurveys.getSurveyByName(survey)
-
-		#if survey object exists for that course and it is in review phase
-		if surveyobj:
-			if surveyobj.getStage() == 1:
-				tobereviewed.append(surveyobj)
-
-	return render_template('staffDashboard.html', sreviewed = tobereviewed)
+	currentuser.populateStaffSurveys(allSurveys.getSurveyList())
+	tobereviewed = currentuser.getNotCompleted()
+	print("tobereviewed",tobereviewed)
+	sclosed = currentuser.getClosedSurveys()
+	print ("sclosed", sclosed)
+	return render_template('staffDashboard.html', sreviewed = tobereviewed, sclosed = sclosed)
 
 #STUDENT DASHBOARD
 @app.route('/student/dashboard')
@@ -75,7 +73,10 @@ def studentdashboard():
 	print("Calling populateStudentSurveys")
 	currentuser.populateStudentSurveys(allSurveys.getSurveyList())
 	tobeanswered = currentuser.getNotCompleted()
-	return render_template('studentDashboard.html', sanswered = tobeanswered)
+	global metricsViewable
+	sclosed = currentuser.getClosedSurveys()
+	return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = sclosed)
+
 
 
 #NEW QUESTIONS PAGE
@@ -157,6 +158,8 @@ def viewActiveSurveys():
         for s in slist:
             if(s.getCourseName() == request.form["submit"]):
                 s.setStage(3)
+                global metricsViewable 
+                metricsViewable = True
 
     for s in slist:
         if s.getStage() == 2:

@@ -11,11 +11,12 @@
 	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
 	 			        {% endfor %}
 	 			    {% endif %}
-	 			    {% if sreviewed %}
-	 			        {% for survey in sreviewed %}
+	 			    {% if sclosed %}
+	 			        {% for survey in sclosed %}
 	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
 	 			        {% endfor %}
 	 			    {% endif %}
+
 			    </div>
 			 </div>
 			 {% endif %}
