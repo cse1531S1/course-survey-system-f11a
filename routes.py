@@ -286,10 +286,18 @@ def survey(surveyName):
 		#for each qid
 		for v in request.form:
 			failedQuestion = True #assume true
+			#print("****Iteration of outer loop")
+			#print("We're checking:" + str(v))
 			for q in questionlist:
-				if v == str(q.getQuestionID()):
-					if(request.form.get(str(qId))):
-						resplist.append(request.form.get(str(qId)))
+				#print("Iteration of inner loop")
+				#print("We're: "+str(q.getQuestionID()))
+				if str(v) == str(q.getQuestionID()):
+					if(request.form[str(q.getQuestionID())]):
+						#print ("SUCCESS****")
+						#print("Our form index: " + str(v))
+						#print("Our qID: " + str(qId))
+						#print(request.form[str(q.getQuestionID())]) #DEBUG LINE
+						resplist.append(request.form[str(q.getQuestionID())])
 						failedQuestion = False
 
 			if (failedQuestion == True):
