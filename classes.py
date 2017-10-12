@@ -304,9 +304,6 @@ class Survey(object):
 	def getCourseName(self):
 		return self._coursename
 
-	#def getSurveyID(self):
-	#	return self._uniqueID
-
 	#Given a question, add the question ID to the pool
 	def addQuestion(self, q):
 		self._questionList.append(q.getQuestionID())

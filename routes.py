@@ -146,11 +146,16 @@ def newsurvey():
 	return render_template('chooseSession.html', courses = courses_list, semesters = semesters)
 	
 #VIEW ACTIVE SURVEYS
-@app.route('/admin/viewSurveysList') 
+@app.route('/admin/viewSurveysList',methods=["GET","POST"]) 
 def viewActiveSurveys():
     slist = allSurveys.getSurveyList()
     slive = []
     
+    if request.method == 'POST':
+        for s in slist:
+            if(s.getCourseName() == request.form["submit"]):
+                s.setStage(3)
+
     for s in slist:
         if s.getStage() == 2:
             slive.append(s)
