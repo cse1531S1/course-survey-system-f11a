@@ -4,8 +4,7 @@ from classes import Survey, Question, Authentication, User
 import csv
 
 #THIS IS A COMMENT
-
-currentuser = User(0)
+currentuser = User(0,"")
 #LOGIN PAGE
 @app.route('/', methods=["GET","POST"])
 def login():
@@ -60,10 +59,22 @@ def admindashboard():
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
-	currentuser.populateStaffSurveys(allSurveys.getSurveyList())
-	tobereviewed = currentuser.getNotCompleted()
+	usersurveys = currentuser.getCourses()#list of courses assigned to staff
+	print("usersurveys", usersurveys)
+	tobereviewed = []
+	sclosed = []
+	for survey in usersurveys:
+		surveyobj = allSurveys.getSurveyByName(survey)
+
+		#if survey object exists for that course and it is in review phase
+		if surveyobj:
+			if surveyobj.getStage() == 1:
+				print(surveyobj.getCourseName())
+				tobereviewed.append(surveyobj)
+			if surveyobj.getStage() == 3:
+				sclosed.append(surveyobj)
+
 	print("tobereviewed",tobereviewed)
-	sclosed = currentuser.getClosedSurveys()
 	print ("sclosed", sclosed)
 	return render_template('staffDashboard.html', sreviewed = tobereviewed, sclosed = sclosed)
 
@@ -74,8 +85,21 @@ def studentdashboard():
 	currentuser.populateStudentSurveys(allSurveys.getSurveyList())
 	tobeanswered = currentuser.getNotCompleted()
 	global metricsViewable
+	surveyclosed = []
+	allcourses = currentuser.getCourses()
+	print("Allcourse",allcourses)
+
+	for course in allcourses:
+		thisSurvey = allSurveys.getSurveyByName(course)
+		if thisSurvey:
+			if thisSurvey.getStage() == 3:
+				surveyclosed.append(course)
+				print("adding",course)
+
 	sclosed = currentuser.getClosedSurveys()
-	return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = sclosed)
+	
+
+	return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = surveyclosed)
 
 
 
@@ -248,7 +272,7 @@ def reviewSurvey(surveyName):
 
         thisSurvey.setStage(2)
         #currentuser.nowCompleted(surveyName)
-
+        
         return redirect(url_for('finishedReview'))
            
     return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
@@ -263,15 +287,12 @@ def finishedReview():
 
 	
 # SURVEY PAGE
-
-# fix up url based on implementation
-
 @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
 def survey(surveyName):
 	thisSurvey = allSurveys.getSurveyByName(surveyName)
-	print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
+	#print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
-	print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
+	#print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
 	questionlist = []
 	resplist = [] #list of all responses
 
@@ -279,27 +300,19 @@ def survey(surveyName):
 	for qId in allqinsurvey:
 		questionlist.append(allQuestions.getQuestion(qId))
 		
-	print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
+	#print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
 
 	if request.method == 'POST':
-		print("********")
-		print(request.form)
-		print("********")
+		#print("********")
+		#print(request.form)
+		#print("********")
 		
 		#for each qid
 		for v in request.form:
 			failedQuestion = True #assume true
-			#print("****Iteration of outer loop")
-			#print("We're checking:" + str(v))
 			for q in questionlist:
-				#print("Iteration of inner loop")
-				#print("We're: "+str(q.getQuestionID()))
 				if str(v) == str(q.getQuestionID()):
 					if(request.form[str(q.getQuestionID())]):
-						#print ("SUCCESS****")
-						#print("Our form index: " + str(v))
-						#print("Our qID: " + str(qId))
-						#print(request.form[str(q.getQuestionID())]) #DEBUG LINE
 						resplist.append(request.form[str(q.getQuestionID())])
 						failedQuestion = False
 
@@ -310,6 +323,8 @@ def survey(surveyName):
 		
 		# sucessful survey entry 		
 		thisSurvey.addResponse(resplist)
+		print("CURRENT UID IS: " + str(currentuser.getUID()))
+		thisSurvey.addUser(str(currentuser.getUID()))
 		currentuser.nowCompleted(surveyName)
 		return redirect(url_for("studentSurveySubmitted"))
 
