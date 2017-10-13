@@ -36,39 +36,47 @@ def admindashboard():
 	slist = allSurveys.getSurveyList()
 	tobereviewed = []
 	slive = []
+	sclosed = []
 	questionlist = []
 	
-	metricsViewable = True;
+	metricsViewable = True
 	
 	for s in slist:
 		if s.getStage() == 1:
 			tobereviewed.append(s)
 		if s.getStage() == 2:
 			slive.append(s)
+		if s.getStage() == 3:
+			sclosed.append(s)
 
 	qlist = allQuestions.getVisibleQuestions()
 	
 	for q in qlist:
 		questionlist.append(q)
 
-	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive,            metricsViewable = metricsViewable)
+	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive, sclosed = sclosed, metricsViewable = metricsViewable)
 
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
 	usersurveys = currentuser.getCourses()#list of courses assigned to staff
-	print("Courses found were: ")
-	print(usersurveys)
+	print("usersurveys", usersurveys)
 	tobereviewed = []
+	sclosed = []
 	for survey in usersurveys:
 		surveyobj = allSurveys.getSurveyByName(survey)
 
 		#if survey object exists for that course and it is in review phase
 		if surveyobj:
 			if surveyobj.getStage() == 1:
+				print(surveyobj.getCourseName())
 				tobereviewed.append(surveyobj)
+			if surveyobj.getStage() == 3:
+				sclosed.append(surveyobj)
 
-	return render_template('staffDashboard.html', sreviewed = tobereviewed)
+	print("tobereviewed",tobereviewed)
+	print ("sclosed", sclosed)
+	return render_template('staffDashboard.html', sreviewed = tobereviewed, sclosed = sclosed)
 
 #STUDENT DASHBOARD
 @app.route('/student/dashboard')
@@ -76,7 +84,23 @@ def studentdashboard():
 	print("Calling populateStudentSurveys")
 	currentuser.populateStudentSurveys(allSurveys.getSurveyList())
 	tobeanswered = currentuser.getNotCompleted()
-	return render_template('studentDashboard.html', sanswered = tobeanswered)
+	global metricsViewable
+	surveyclosed = []
+	allcourses = currentuser.getCourses()
+	print("Allcourse",allcourses)
+
+	for course in allcourses:
+		thisSurvey = allSurveys.getSurveyByName(course)
+		if thisSurvey:
+			if thisSurvey.getStage() == 3:
+				surveyclosed.append(course)
+				print("adding",course)
+
+	sclosed = currentuser.getClosedSurveys()
+	
+
+	return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = surveyclosed)
+
 
 
 #NEW QUESTIONS PAGE
@@ -158,6 +182,8 @@ def viewActiveSurveys():
         for s in slist:
             if(s.getCourseName() == request.form["submit"]):
                 s.setStage(3)
+                global metricsViewable 
+                metricsViewable = True
 
     for s in slist:
         if s.getStage() == 2:
@@ -311,9 +337,24 @@ def studentSurveySubmitted():
 	
 	
 #VIEW METRICS
-@app.route('/admin/metricsSelection')
-def metrics():
-	return render_template('adminMetricsSelection.html')
+@app.route('/metrics/<surveyName>')
+def metrics(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	allresponses = []
+	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
+		resplist = thisSurvey.getResponses()
+		print("all responses object", resplist)
+	return render_template('metrics.html', resplist = resplist)
+
+
+@app.route('/student/metrics/<surveyName>')
+def studentMetrics(surveyName):
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	allresponses = []
+	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
+		resplist = thisSurvey.getResponses()
+		print("all responses object", resplist)
+	return render_template('studentmetrics.html', resplist = resplist)
 #--------------------------functions for constructing courses --------------------------------------
 #---------------------------------------------------------------------------------------------------
 def inList(list_current, to_find):

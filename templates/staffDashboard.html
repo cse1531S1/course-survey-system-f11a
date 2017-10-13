@@ -25,8 +25,14 @@
 	{% endif %}
 	
 	<h3>Released Survey Results</h3>
-	No results are available.
-
+	{% if sclosed %}
+	    {% for survey in sclosed %}
+	        <a href="/metrics/{{ survey.getCourseName() }}" class="w3-bar-item w3-button">{{ survey.getCourseName() }}</a>
+	        <br>
+	    {% endfor %}
+	{% else %}
+	    No results released yet.
+	{% endif %}
 
 <!-- Page content -->
 

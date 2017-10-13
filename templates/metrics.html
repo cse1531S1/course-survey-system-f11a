@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<title>Live Survey Forms</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style>	body {font-family: "Lato", sans-serif} </style>
+
+<body>
+<!-- Admin Navbar -->
+    {% include 'adminNav.html' %}
+<!-- End Navbar -->
+	
+<!-- Page content -->
+
+	<form action="" method="post">
+	<h1>All Responses</h1>
+
+    {% if resplist %}
+	    {% for responseobj in resplist %}
+   		    {% for answer in responseobj.getResponse() %}
+   		    	{{answer}}<br>
+   		    {% endfor %}
+   		    (End of response) <br>
+	    {% endfor %}
+	{% else %}
+	    No responses have been filled out
+	{% endif %}
+	</form>
+
+</body>
+</html>

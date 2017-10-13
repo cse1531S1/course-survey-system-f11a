@@ -74,9 +74,9 @@ class User(object):
 	def __init__(self, permLevel, idString):
 		self._dbName = "Users.db"
 		self._permLevel = permLevel
-		self._courses = []
-		self._notCompletedSurveys = []
-		self._closedSurveys = []
+		self._courses = [] #contains list of strings of coursenames
+		self._notCompletedSurveys = [] #contains list of survey objects (go with it for now)
+		self._closedSurveys = [] #contains list of strings of coursenames
 		self._UID = idString
 #		self.__unfilled = []
 
@@ -99,6 +99,9 @@ class User(object):
 		return self._UID
 
 	#Given a course ID, add it to the list of closed surveys
+	################################
+	#NOTE: THIS ADDS THE SURVEY TO CLOSED, WHICH IS NOT DECIDED BY ADMIN YET
+	################################
 	def nowCompleted(self,courseID):
 		#print("NOW COMPLETED BEING ENTERED")
 		#print("NOTE COMPLETED SURVEYS ARE: ")
@@ -114,7 +117,7 @@ class User(object):
 			if course.getCourseName() == courseID:
 				del self._notCompletedSurveys[i]
 			i += 1
-		self._closedSurveys.append(courseID)
+		#self._closedSurveys.append(courseID)
 		
 		i = 0
 		for course in self._courses:
@@ -158,7 +161,7 @@ class User(object):
 			if s.getCourseName() in myCourses: #It was in our courses :D
 				for sv in self._closedSurveys:
 					print("We've listed as closed: "+sv)
-					if sv == s.getCourseName():
+					if sv == s.getCourseName(): #assumes that closedSurvey has list of strings
 						allClear = False
 				if(s.hasUser(str(self.getUID()))):
 					allClear = False
@@ -166,7 +169,22 @@ class User(object):
 					if s.getStage() == 2:
 						self._notCompletedSurveys.append(s)
 					elif s.getStage():
-						self._closedSurveys.append(s)
+						self._closedSurveys.append(s.getCourseName())
+
+	def populateStaffSurveys(self, surveyList):
+		#in this understanding, notCompleted = to be reviewed surveys, closed = closed surveys
+		self.resetCourses()
+		myCourses = self.getCourses()
+		print(myCourses)
+		for s in surveyList:
+			print("Checking " ,s.getCourseName(),s.getStage())
+			if s.getCourseName() in myCourses:
+				print("It was in our courses!")
+				print("Stage is", s.getStage())
+				if s.getStage() == 1:
+					self._notCompletedSurveys.append(s)
+				elif s.getStage() == 3:
+					self._closedSurveys.append(s)
 
 class SurveyPool(object):
 	def __init__(self):
@@ -389,7 +407,7 @@ class Survey(object):
 
 	#Returns the current list of response objects
 	def getResponses(self):
-		return self._responsePool.getResponses()
+		return self._responsePool.getResponseList()
 
 	def setStage(self, stage):
 		self._stage = stage
