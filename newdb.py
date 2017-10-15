@@ -6,7 +6,9 @@ from sqlalchemy import create_engine, Table, Text
 
 Base = declarative_base()
 engine = create_engine('sqlite:///Systemdata.db')
-
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 users_courses = Table('users_courses', Base.metadata, 
                             Column('userid', Integer, ForeignKey('USERS.zid'), primary_key=True),
@@ -15,7 +17,7 @@ users_courses = Table('users_courses', Base.metadata,
 class Users(Base):
 
     __tablename__ = 'USERS'
-    zid = Column(Integer, primary_key=True)
+    zid = Column(String, primary_key=True)
     password = Column(String)
     permission = Column(Integer) #0 = admin, 1 = staff, 2 = student
     
@@ -34,6 +36,10 @@ class Courses(Base):
     users = relationship("Users", secondary='users_courses', back_populates="enrolment")
     survey = relationship("Surveys", back_populates="coursename")
 
+    def __repr__(self):
+        return "<Courses(coursename='%s')>" % (self.coursename)
+
+
 
 
 surveys_questions = Table('surveys_questions', Base.metadata,
@@ -43,14 +49,18 @@ surveys_questions = Table('surveys_questions', Base.metadata,
 
 class Surveys(Base):
 
-	__tablename__ = 'SURVEYS'
-	sid = Column(Integer, primary_key=True)
-	course = Column(String, ForeignKey(Courses.coursename))
-	stage = Column(Integer) #stage 0 = to be reviewed, stage 1 = live, stage 2 = closed
+    __tablename__ = 'SURVEYS'
+    sid = Column(Integer, primary_key=True)
+    course = Column(String, ForeignKey(Courses.coursename))
+    stage = Column(Integer) #stage 0 = to be reviewed, stage 1 = live, stage 2 = closed
 
-	coursename = relationship("Courses", back_populates="survey")
-	questions = relationship("Questions", secondary='surveys_questions', back_populates='survey')
-	responses = relationship("Responses", back_populates="survey")
+    coursename = relationship("Courses", back_populates="survey")
+    questions = relationship("Questions", secondary='surveys_questions', back_populates='survey')
+    responses = relationship("Responses", back_populates="survey")
+
+    def __repr__(self):
+        return "<Survey(sid='%s', course='%s', stage='%s')>" % (self.sid, self.course, self.stage)
+
 
 
 class Questions(Base):
@@ -62,6 +72,11 @@ class Questions(Base):
     isMan = Column(Integer) #1 = Mandatory, 0 = optional
     survey = relationship('Surveys', secondary='surveys_questions', back_populates='questions')
     responses = relationship('Responses', back_populates='question')
+
+    def __repr__(self):
+        return "<Questions(qid='%s', string='%s', isMCQ='%s', isMan='%s')>" % (self.qid,
+                                                     self.string, self.isMCQ, self.isMan)
+
 
 class Responses(Base):
 
@@ -76,15 +91,112 @@ class Responses(Base):
     question = relationship("Questions", back_populates='responses')
     survey = relationship("Surveys", back_populates="responses")
 
+    def __repr__(self):
+        return "<Responses(rid='%s', string='%s', u_id='%s', q_id='%s', s_id='%s')>" % (self.rid,
+                                                     self.string, self.u_id, self.q_id, self.s_id)
+
 Base.metadata.create_all(engine)
 
+class Controller(object):
+    def isValidUser(self, username, password):
+        return session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
+
+#Questions
+    def addNewQuestion(self, question, entrytype, questiontype):
+        question = Questions(string = str(question), isMCQ = entrytype, isMan = questiontype)
+        session.add(question)
+        session.commit()
+
+    def getAllQuestions(self):
+        qlist = []
+        for question in session.query(Questions).all():
+            qlist.append(question)
+        return qlist
+
+    def getMandatoryQuestions(self):
+        mqlist = []
+        for question in session.query(Questions).filter_by(isMan = 1).all():
+            mqlist.append(question)
+        return mqlist
+
+    def getOptionalQuestions(self):
+        oqlist = []
+        for question in session.query(Questions).filter_by(isMan = 0).all():
+            oqlist.append(question)
+        return oqlist
+
+    def getQuestion(self, qstring):
+        return session.query(Questions).filter_by(string=qstring).one_or_none()
+
+    def addQuestion(self, thissurvey, thisquestion):
+        thissurvey.questions.append(thisquestion)
+        session.commit()
+
+    def removeQuestion(self, questionid):
+        session.query(Questions).filter_by(qid = questionid).delete(synchronize_session=False)
+        session.commit()
+
+#Courses
+    def getCourses(self, semester):
+        courses = []
+        for course in session.query(Courses).all():
+            coursecode = course.coursename[:8]
+            sem = course.coursename[8:]
+            if sem == semester:
+                if coursecode not in courses:
+                    courses.append(coursecode)
+        return courses
+
+    def getSemesters(self):
+        semlist = []
+        for semester in session.query(Courses).all():
+            sem = semester.coursename[8:]
+            if sem not in semlist:
+                semlist.append(sem)
+        return semlist
+
+    def getCoursesList(self):
+        semesters = self.getSemesters()
+        courses = {}
+        for sem in semesters:
+            courses[sem] = self.getCourses(sem)
+        return courses
+
+#Surveys
+    def addNewSurvey(self, surveyname):
+        thissurvey = Surveys(course = str(surveyname), stage = 0)
+        session.add(thissurvey)
+        session.commit()
+        return thissurvey
+
+    def getReviewSurveys(self):
+        rslist = []
+        for survey in session.query(Surveys).filter_by(stage = 0).all():
+            rslist.append(survey)
+        return rslist
+
+    def getLiveSurveys(self):
+        lslist = []
+        for survey in session.query(Surveys).filter_by(stage = 1).all():
+            lslist.append(survey)
+        return lslist
+
+    def getClosedSurveys(self):
+        cslist = []
+        for survey in session.query(Surveys).filter_by(stage = 2).all():
+            cslist.append(survey)
+        return cslist
+
+    # def getMyReviewSurveys(self, currentuser):
+        
 
 
 
 
 
-
-# mandar = Users(zid=5060517, password='pass123', permission = 3)
+# user = Controller();
+# mandar = user.isValidUser(50, 'staff670')
+# print(mandar, mandar.permission)
 # course = Courses(coursename ='COMP1531')
 # mandar.enrolment.append(course)
 

@@ -23,7 +23,7 @@
 			    <button class="w3-button">{{ sem }}</button>
 			    <div id = "semCourse" class="w3-dropdown-content w3-bar-block w3-border">
 			    {% for course in courses[sem] %}
-				    <a href="/admin/chooseQuestions/{{ sem }}/{{ course }}" class="w3-bar-item w3-button w3-animate-zoom">{{ course }}</a>
+				    <a href="/admin/chooseQuestions/{{ course }}/{{ sem }}" class="w3-bar-item w3-button w3-animate-zoom">{{ course }}</a>
 			    {% endfor %}
 			    </div>
 			</div>

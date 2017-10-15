@@ -16,7 +16,7 @@
 	<h3>Live Survey Forms</h3>
 	{% if slive %}
 	    {% for s in slive %}
-	        {{ s.getCourseName() }}<br>
+	        {{ s.course }}<br>
 	    {% endfor %}
 	{% else %}
 	No surveys are live.
@@ -25,7 +25,7 @@
 	<h3>Survey Forms To Be Reviewed</h3>
 	{% if sreviewed %}
 	    {% for s in sreviewed %}
-	        {{ s.getCourseName() }}<br>
+	        {{ s.course }}<br>
 	    {% endfor %}
 	{% else %}
 	No surveys have been added.
@@ -35,8 +35,8 @@
 	
 	{% if qlist %}
 	    {% for q in qlist %}
-	        {{ q.getQuestionString() }}
-	        {% if q.getAnswerType() %}
+	        {{ q.string }}
+	        {% if q.isMCQ %}
 	            (MCQ)
 	        {% else %}
 	            (TEXT)

@@ -21,9 +21,9 @@
 		{% autoescape false %}
 			{% for q in questions %}
 				<p>
-				<input class = "w3-check" type="checkbox" name="{{q.getQuestionString()}}">
-				<label>{{q.getQuestionString()}}</label>
-			    {% if q.getAnswerType() %}
+				<input class = "w3-check" type="checkbox" name="{{q.string}}">
+				<label>{{q.string}}</label>
+			    {% if q.isMCQ %}
 	                (MCQ)
 	            {% else %}
 	                (TEXT)
