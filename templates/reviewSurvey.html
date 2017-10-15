@@ -20,8 +20,8 @@
 	{% if manqlist %}
 	
 	{% for q in manqlist %}
-	    {{q.getQuestionString()}}
-	    {% if q.getAnswerType() %}
+	    {{q.string}}
+	    {% if q.isMCQ %}
 	        (MCQ)
 	    {% else %}
 	        (TEXT)
@@ -39,9 +39,9 @@
 	{% if opqlist %}
 		
 			{% for q in opqlist %}
-				<input class = "w3-check" type="checkbox" name="{{ q.getQuestionID() }}">
-				<label>{{q.getQuestionString()}}</label>
-			    {% if q.getAnswerType() %}
+				<input class = "w3-check" type="checkbox" name="{{ q.string }}">
+				<label>{{q.string}}</label>
+			    {% if q.isMCQ %}
 	                (MCQ)
 	            {% else %}
 	                (TEXT)

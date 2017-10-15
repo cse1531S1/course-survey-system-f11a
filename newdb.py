@@ -169,6 +169,9 @@ class Controller(object):
         session.commit()
         return thissurvey
 
+    def getSurvey(self, coursename):
+        return session.query(Surveys).filter_by(course = coursename).one()
+
     def getReviewSurveys(self):
         rslist = []
         for survey in session.query(Surveys).filter_by(stage = 0).all():
@@ -187,8 +190,28 @@ class Controller(object):
             cslist.append(survey)
         return cslist
 
-    # def getMyReviewSurveys(self, currentuser):
-        
+    def getMyReviewSurveys(self, currentuser):
+        for subject in currentuser.enrolment:
+            print("Subject",subject)
+            surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=0).all()
+            return surveys
+            #returns list of survey objects
+
+    def getMyClosedSurveys(self, currentuser):
+        for subject in currentuser.enrolment:
+            print("Subject",subject)
+            surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=2).all()
+            return surveys
+
+    def setStage(self, survey, Stage):
+        survey.stage = Stage
+        session.commit()
+
+
+
+
+
+
 
 
 
