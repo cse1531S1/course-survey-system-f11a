@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy import create_engine, Table, Text
+from sqlalchemy import create_engine, Table, Text, update
 
 
 Base = declarative_base()
@@ -12,7 +12,8 @@ session = DBSession()
 
 users_courses = Table('users_courses', Base.metadata, 
                             Column('userid', Integer, ForeignKey('USERS.zid'), primary_key=True),
-                            Column('coursename', String, ForeignKey('COURSES.coursename'), primary_key=True)
+                            Column('coursename', String, ForeignKey('COURSES.coursename'), primary_key=True),
+                            Column('attempt', String, default = '0')
                             )
 class Users(Base):
 
@@ -192,20 +193,41 @@ class Controller(object):
 
     def getMyReviewSurveys(self, currentuser):
         for subject in currentuser.enrolment:
-            print("Subject",subject)
             surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=0).all()
-            return surveys
+        return surveys
             #returns list of survey objects
 
     def getMyClosedSurveys(self, currentuser):
         for subject in currentuser.enrolment:
-            print("Subject",subject)
             surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=2).all()
-            return surveys
+        return surveys
+
+    def getMyLiveSurveys(self, currentuser):
+        for subject in currentuser.enrolment:
+            surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=1).all()
+            # surveys = session.query(Surveys, users_courses).filter(Surveys.course==subject.coursename, Surveys.stage==1).filter(users_courses.attempt=='0').all()
+
+        return surveys
 
     def setStage(self, survey, Stage):
         survey.stage = Stage
         session.commit()
+
+#Responses
+    def addNewResponse(self, answer, questionid, survey, user):
+        response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
+        session.add(response)
+        session.commit()
+        return response
+
+    # def nowCompleted(self, currentuser, Coursename):
+    #     Enrolment = session.query(users_courses).filter_by(userid=currentuser.zid, coursename = Coursename).one()
+    #     Enrolment.update({Enrolment.attempt:'1'})
+    #     # print(Enrolment.attempt)
+    #     # session.query(users_courses).filter_by(userid=currentuser.zid, coursename = Coursename).update({users_courses.attempt:"1"})
+    #     # Enrolment.update().where(Enrolment.userid == currentuser.zid, Enrolment.coursename == Coursename).values(attempt='1')
+    #     session.commit()
+        
 
 
 

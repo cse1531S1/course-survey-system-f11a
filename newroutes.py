@@ -4,8 +4,6 @@ from newserver import app, reader
 from newdb import Controller
 import csv
 
-#THIS IS A COMMENT
-
 #LOGIN PAGE
 global currentuser
 
@@ -45,9 +43,6 @@ def admindashboard():
 	metricsViewable = True
 
 	return render_template('adminDashboard.html', qlist = questionlist, sreviewed = tobereviewed, slive = slive, sclosed = sclosed, metricsViewable = metricsViewable)
-
-
-
 
 
 #NEW QUESTIONS PAGE
@@ -126,7 +121,7 @@ def courseObject(coursename, semestername):
 	if request.method == "POST":
 		surveyname = coursename+semestername
 		
-		# Implement afterwards
+		# Implement afterwards - if creating an existing survey
 		# if allSurveys.getSurveyByName(surveyname):
 		#     allSurveys.deleteSurvey(surveyname)
 		
@@ -161,10 +156,15 @@ def questionselected():
 			
 	else:
 		return render_template('adminSurveySubmitted.html')   
+
+
+
+
     
 #STAFF DASHBOARD
 @app.route('/staff/dashboard')
 def staffdashboard():
+	global currentuser
 	tobereviewed = reader.getMyReviewSurveys(currentuser)
 	# reviewed = reader.getMyReviewedSurveys()
 	sclosed = reader.getMyClosedSurveys(currentuser)
@@ -199,78 +199,81 @@ def finishedReview():
     
     return render_template('staffSurveySubmitted.html', message = message)
 
+
+
+
 #STUDENT DASHBOARD
 @app.route('/student/dashboard')
 def studentdashboard():
-	# print("Calling populateStudentSurveys")
-	# currentuser.populateStudentSurveys(allSurveys.getSurveyList())
-	# tobeanswered = currentuser.getNotCompleted()
+
 	# global metricsViewable
-	surveyclosed = []
-	tobeanswered = []
-	# allcourses = currentuser.getCourses()
-	# print("Allcourse",allcourses)
-
-	# for course in allcourses:
-	# 	thisSurvey = allSurveys.getSurveyByName(course)
-	# 	if thisSurvey:
-	# 		if thisSurvey.getStage() == 3:
-	# 			surveyclosed.append(course)
-	# 			print("adding",course)
-
-	# sclosed = currentuser.getClosedSurveys()
+	global currentuser
+	surveyclosed = reader.getMyClosedSurveys(currentuser)
+	tobeanswered = reader.getMyLiveSurveys(currentuser)
+	#print(tobeanswered)
 	
 
 	return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = surveyclosed)
 	
-# # SURVEY PAGE
-# @app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
-# def survey(surveyName):
-# 	thisSurvey = allSurveys.getSurveyByName(surveyName)
-# 	#print("We've identified survey as: "+ thisSurvey.getCourseName()) #ALL CLEAR
-# 	allqinsurvey = thisSurvey.getQuestions() #list of questionids
-# 	#print("Number of questions identified is: " + str(len(allqinsurvey))) #ALL CLEAR
-# 	questionlist = []
-# 	resplist = [] #list of all responses
+# SURVEY PAGE
+@app.route ('/student/survey/<surveyName>', methods=["GET", "POST"])
+def survey(surveyName):
 
-# 	#find out all questions for this survey
-# 	for qId in allqinsurvey:
-# 		questionlist.append(allQuestions.getQuestion(qId))
+	thisSurvey = reader.getSurvey(surveyName)
+	questionlist = thisSurvey.questions
+
+	if request.method == 'POST':
+		#for each question object
+		count = 0
+		for v in request.form:
+			count+=1
+			print('question',str(v))
+			print('ans',request.form[v])
+			
+			#ISSUE: how to check if 
+			thisQuestion = reader.getQuestion(v)
+			global currentuser
+			thisResponse = reader.addNewResponse(request.form[v], thisQuestion.qid, thisSurvey, currentuser)
+			thisQuestion.responses.append(thisResponse)
+
+		if count != len(questionlist):
+			message = "ERROR: Please enter a response to all questions"
+			return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
+
+		# global currentuser
+		# reader.nowCompleted(currentuser, surveyName)
+			# failedQuestion = True #assume true
+			# for q in questionlist:
+			# 	if str(v) == str(q.qid):
+			# 		if request.form[str(q.qid)]:
+			# 			print(request.form[str(q.qid)])
+			# 			q.responses.append()
+			# 			failedQuestion = False
+
+			# for q in questionlist:
+			# 	if str(v) == str(q.getQuestionID()):
+			# 		if(request.form[str(q.getQuestionID())]):
+			# 			resplist.append(request.form[str(q.getQuestionID())])
+			# 			failedQuestion = False
+
+			# if (failedQuestion == True):
+			# 		print("Failed survey on question: " + allQuestions.getQuestion(int(qId)).getQuestionString() )
+			# 		message = "ERROR: Please enter a response to all questions"
+			# 		return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 		
-# 	#print("Number of questions after scan is: " + str(len(questionlist))) #ALL CLEAR
+		# # sucessful survey entry 		
+		# thisSurvey.addResponse(resplist)
+		# print("CURRENT UID IS: " + str(currentuser.getUID()))
+		# thisSurvey.addUser(str(currentuser.getUID()))
+		# currentuser.nowCompleted(surveyName)
+		return redirect(url_for("studentSurveySubmitted"))
 
-# 	if request.method == 'POST':
-# 		#print("********")
-# 		#print(request.form)
-# 		#print("********")
-		
-# 		#for each qid
-# 		for v in request.form:
-# 			failedQuestion = True #assume true
-# 			for q in questionlist:
-# 				if str(v) == str(q.getQuestionID()):
-# 					if(request.form[str(q.getQuestionID())]):
-# 						resplist.append(request.form[str(q.getQuestionID())])
-# 						failedQuestion = False
+	return render_template('survey.html', questions = questionlist, surveyName = surveyName)
 
-# 			if (failedQuestion == True):
-# 					print("Failed survey on question: " + allQuestions.getQuestion(int(qId)).getQuestionString() )
-# 					message = "ERROR: Please enter a response to all questions"
-# 					return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
-		
-# 		# sucessful survey entry 		
-# 		thisSurvey.addResponse(resplist)
-# 		print("CURRENT UID IS: " + str(currentuser.getUID()))
-# 		thisSurvey.addUser(str(currentuser.getUID()))
-# 		currentuser.nowCompleted(surveyName)
-# 		return redirect(url_for("studentSurveySubmitted"))
-
-# 	return render_template('survey.html', questions = questionlist, surveyName = surveyName)
-
-# #SURVEY COMPLETED	
-# @app.route ('/student/surveySubmitted')
-# def studentSurveySubmitted():
-# 	return render_template('surveySubmitted.html')
+#SURVEY COMPLETED	
+@app.route ('/student/surveySubmitted')
+def studentSurveySubmitted():
+	return render_template('surveySubmitted.html')
 	
 	
 # #VIEW METRICS
