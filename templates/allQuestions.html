@@ -22,13 +22,13 @@
 	    
     	{% if mandatoryq %}
 	        {% for q in mandatoryq %}
-	            {{ q.getQuestionString() }}
-	            {% if q.getAnswerType() %}
+	            {{ q.string }}
+	            {% if q.isMCQ %}
 	                (MCQ)
 	            {% else %}
 	                (TEXT)
 	            {% endif %}         
-	             <button type="submit" value="{{q.getQuestionID()}}" name = "submit">Remove</button><br>
+	             <button type="submit" value="{{q.qid}}" name = "submit">Remove</button><br>
 	        {% endfor %}
 	    {% else %}
 	    No mandatory questions to display
@@ -38,13 +38,13 @@
 	
 	    {% if optionalq %}
 	        {% for q in optionalq %}
-	            {{ q.getQuestionString() }}
-	            {% if q.getAnswerType() %}
+	            {{ q.string }}
+	            {% if q.isMCQ %}
 	                (MCQ)
 	            {% else %}
 	                (TEXT)
 	            {% endif %} 
-	            <button type="submit" value="{{q.getQuestionID()}}" name = "submit">Remove</button><br>
+	            <button type="submit" value="{{q.qid}}" name = "submit">Remove</button><br>
 	        {% endfor %}
 	    {% else %}
 	    No optional questions to display

@@ -8,12 +8,12 @@
 	 			<div class="w3-dropdown-content w3-bar-block w3-card-4">
 	 			    {% if slive %}
 	 			        {% for survey in slive %}
-	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
+	 			          <a href="/metrics/{{survey.course}}"class="w3-bar-item w3-button">{{survey.course}}</a>
 	 			        {% endfor %}
 	 			    {% endif %}
 	 			    {% if sclosed %}
 	 			        {% for survey in sclosed %}
-	 			          <a href="/metrics/{{survey.getCourseName()}}"class="w3-bar-item w3-button">{{survey.getCourseName()}}</a>
+	 			          <a href="/metrics/{{survey.course}}"class="w3-bar-item w3-button">{{survey.course}}</a>
 	 			        {% endfor %}
 	 			    {% endif %}
 
