@@ -18,10 +18,11 @@
 
     {% if resplist %}
 	    {% for responseobj in resplist %}
-   		    {% for answer in responseobj.getResponse() %}
-   		    	{{answer}}<br>
+	    	Question: {{responseobj.question.string}}<br>
+   		    {% for answer in responseobj.string %}
+   		    	Response: {{answer}}
    		    {% endfor %}
-   		    (End of response) <br>
+   		    <br>
 	    {% endfor %}
 	{% else %}
 	    No responses have been filled out

@@ -120,12 +120,13 @@ def courseObject(coursename, semestername):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	if request.method == "POST":
 		surveyname = coursename+semestername
+		if reader.getSurvey(surveyname):
+			reader.deleteSurvey(surveyname)
 		
 		# Implement afterwards - if creating an existing survey
 		# if allSurveys.getSurveyByName(surveyname):
 		#     allSurveys.deleteSurvey(surveyname)
-		
-		
+			
 		thisSurvey = reader.addNewSurvey(surveyname)
 		print('survey added')
 		for v in request.form:
@@ -234,38 +235,15 @@ def survey(surveyName):
 			thisQuestion = reader.getQuestion(v)
 			global currentuser
 			thisResponse = reader.addNewResponse(request.form[v], thisQuestion.qid, thisSurvey, currentuser)
+			print(thisResponse.string)
 			thisQuestion.responses.append(thisResponse)
 
 		if count != len(questionlist):
 			message = "ERROR: Please enter a response to all questions"
+			reader.removeNullResponses(thisSurvey)
 			return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 
-		# global currentuser
-		# reader.nowCompleted(currentuser, surveyName)
-			# failedQuestion = True #assume true
-			# for q in questionlist:
-			# 	if str(v) == str(q.qid):
-			# 		if request.form[str(q.qid)]:
-			# 			print(request.form[str(q.qid)])
-			# 			q.responses.append()
-			# 			failedQuestion = False
-
-			# for q in questionlist:
-			# 	if str(v) == str(q.getQuestionID()):
-			# 		if(request.form[str(q.getQuestionID())]):
-			# 			resplist.append(request.form[str(q.getQuestionID())])
-			# 			failedQuestion = False
-
-			# if (failedQuestion == True):
-			# 		print("Failed survey on question: " + allQuestions.getQuestion(int(qId)).getQuestionString() )
-			# 		message = "ERROR: Please enter a response to all questions"
-			# 		return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 		
-		# # sucessful survey entry 		
-		# thisSurvey.addResponse(resplist)
-		# print("CURRENT UID IS: " + str(currentuser.getUID()))
-		# thisSurvey.addUser(str(currentuser.getUID()))
-		# currentuser.nowCompleted(surveyName)
 		return redirect(url_for("studentSurveySubmitted"))
 
 	return render_template('survey.html', questions = questionlist, surveyName = surveyName)
@@ -276,25 +254,19 @@ def studentSurveySubmitted():
 	return render_template('surveySubmitted.html')
 	
 	
-# #VIEW METRICS
-# @app.route('/metrics/<surveyName>')
-# def metrics(surveyName):
-# 	thisSurvey = allSurveys.getSurveyByName(surveyName)
-# 	allresponses = []
-# 	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
-# 		resplist = thisSurvey.getResponses()
-# 		print("all responses object", resplist)
-# 	return render_template('metrics.html', resplist = resplist)
+#VIEW METRICS
+@app.route('/metrics/<surveyName>')
+def metrics(surveyName):
+	global currentuser
+	resplist = reader.getMetrics(currentuser, surveyName)
+	return render_template('metrics.html', resplist = resplist)
 
 
-# @app.route('/student/metrics/<surveyName>')
-# def studentMetrics(surveyName):
-# 	thisSurvey = allSurveys.getSurveyByName(surveyName)
-# 	allresponses = []
-# 	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
-# 		resplist = thisSurvey.getResponses()
-# 		print("all responses object", resplist)
-# 	return render_template('studentmetrics.html', resplist = resplist)
+@app.route('/student/metrics/<surveyName>')
+def studentMetrics(surveyName):
+	global currentuser
+	resplist = reader.getMetrics(currentuser, surveyName)
+	return render_template('studentmetrics.html', resplist = resplist)
 # #--------------------------functions for constructing courses --------------------------------------
 # #---------------------------------------------------------------------------------------------------
 # def inList(list_current, to_find):

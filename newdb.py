@@ -13,7 +13,6 @@ session = DBSession()
 users_courses = Table('users_courses', Base.metadata, 
                             Column('userid', Integer, ForeignKey('USERS.zid'), primary_key=True),
                             Column('coursename', String, ForeignKey('COURSES.coursename'), primary_key=True),
-                            Column('attempt', String, default = '0')
                             )
 class Users(Base):
 
@@ -171,7 +170,7 @@ class Controller(object):
         return thissurvey
 
     def getSurvey(self, coursename):
-        return session.query(Surveys).filter_by(course = coursename).one()
+        return session.query(Surveys).filter_by(course = coursename).one_or_none()
 
     def getReviewSurveys(self):
         rslist = []
@@ -203,14 +202,28 @@ class Controller(object):
         return surveys
 
     def getMyLiveSurveys(self, currentuser):
+        removeitem = False
         for subject in currentuser.enrolment:
             surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=1).all()
-            # surveys = session.query(Surveys, users_courses).filter(Surveys.course==subject.coursename, Surveys.stage==1).filter(users_courses.attempt=='0').all()
+            print(surveys)
+        for item in surveys:
+            print(item.responses)
+            for resp in item.responses:
+                if str(resp.u_id) == str(currentuser.zid):
+                    removeitem = True
 
+            if removeitem == True:
+                surveys.remove(item)
+                print(surveys)
+        print('final survey', surveys)
         return surveys
 
     def setStage(self, survey, Stage):
         survey.stage = Stage
+        session.commit()
+
+    def deleteSurvey(self, survey):
+        session.query(Surveys).filter_by(sid=survey).delete(synchronize_session=False)
         session.commit()
 
 #Responses
@@ -220,21 +233,24 @@ class Controller(object):
         session.commit()
         return response
 
-    # def nowCompleted(self, currentuser, Coursename):
-    #     Enrolment = session.query(users_courses).filter_by(userid=currentuser.zid, coursename = Coursename).one()
-    #     Enrolment.update({Enrolment.attempt:'1'})
-    #     # print(Enrolment.attempt)
-    #     # session.query(users_courses).filter_by(userid=currentuser.zid, coursename = Coursename).update({users_courses.attempt:"1"})
-    #     # Enrolment.update().where(Enrolment.userid == currentuser.zid, Enrolment.coursename == Coursename).values(attempt='1')
-    #     session.commit()
+    def removeNullResponses(self, survey):
+        session.query(Responses).filter_by(s_id = survey.sid).delete(synchronize_session=False)
+        session.commit()
+
+    def getMetrics(self, currentuser, coursename):
+        thisSurvey = self.getSurvey(coursename)
+        closedresponse = []
+        liveresponse = []
+        if thisSurvey.stage == 2:
+            closedresponse = session.query(Responses).filter_by(s_id = thisSurvey.sid).all()
+        if thisSurvey.stage == 1 and currentuser.zid == 'admin':
+            print('live survey')
+            liveresponse = session.query(Responses).filter_by(s_id = thisSurvey.sid).all()
+            print('adminresponse', liveresponse)
         
-
-
-
-
-
-
-
+        allresponses = closedresponse+liveresponse
+        print('response', allresponses)
+        return allresponses
 
 
 

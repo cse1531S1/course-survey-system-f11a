@@ -8,14 +8,7 @@
 
 <body>
 <!-- Admin Navbar -->
-	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
-		    <a href="/" class="w3-bar-item w3-button w3-right">Logout</a>
-			<a href="/student/dashboard" class="w3-bar-item w3-button w3-right">Home</a> 
-	  </div>
-	</div>
-<!-- End Navbar -->
-
+    {% include 'studentNav.html' %}
 <!-- End Navbar -->
 	
 <!-- Page content -->
@@ -25,7 +18,8 @@
 
     {% if resplist %}
 	    {% for responseobj in resplist %}
-   		    {% for answer in responseobj.getResponse() %}
+	    	(Start of response)<br>
+   		    {% for answer in responseobj.string %}
    		    	{{answer}}<br>
    		    {% endfor %}
    		    (End of response) <br>
