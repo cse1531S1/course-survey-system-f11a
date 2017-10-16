@@ -1,5 +1,6 @@
 import sqlite3
 import csv
+from flask_login import UserMixin
 # So what we need to do, is:
 # Each database also has a table with a USERSCOMPLETED column
 # On submission of a survey, we need to add that user to that completed columnn
@@ -14,9 +15,10 @@ import csv
 class Authentication(object):
 	def __init__(self):
 		self._dbName = "Users.db"
-	
+
 	#Given a username/password, checks to see if it's a legit combination
 	def IsValidUser(self, username, password):
+		print("Step2")
 		if(username == "admin" and password == "admin"):
 			return True
 		else:
@@ -70,7 +72,7 @@ class Authentication(object):
 		query = "DELETE FROM Enrolments"
 		writer.dbinsert(query, self._dbName)
 
-class User(object):
+class User(UserMixin):
 	def __init__(self, permLevel, idString):
 		self._dbName = "Users.db"
 		self._permLevel = permLevel
@@ -91,7 +93,7 @@ class User(object):
 
 #	def unfilled(self):
 #		return self._unfilled
-	
+
 	def addClosedSurveys(self,courseID):
 		self._closedSurveys.append(course)
 
@@ -118,7 +120,7 @@ class User(object):
 				del self._notCompletedSurveys[i]
 			i += 1
 		#self._closedSurveys.append(courseID)
-		
+
 		i = 0
 		for course in self._courses:
 			if course == courseID:
@@ -126,7 +128,7 @@ class User(object):
 			i += 1
 
 	def getPermission(self):
-		return self._permLevel		
+		return self._permLevel
 
 	def getCourses(self):
 		return self._courses
@@ -211,7 +213,7 @@ class SurveyPool(object):
 		writer = SQLWriter()
 		writer.dbinserts(self._dbName, surveyName, newSurvey.getStage())
 		return newSurvey
-		
+
 	#def deleteSurvey(self,surveyID):
 	#	for survey in self._surveys:
 	#		if(survey.getSurveyID() == surveyID):
@@ -237,7 +239,7 @@ class SurveyPool(object):
 		query = "DELETE FROM Surveys"
 		writer.dbinsert(query, self._dbName)
 		self._surveys = []
-		
+
 	def deleteSurvey(self, surveyname):
 		for s in self._surveys:
 			if s.getCourseName() == surveyname:
@@ -249,7 +251,7 @@ class SurveyPool(object):
 				query = "DELETE FROM USERS"
 				writer.dbinsert(query,s.getDBName())
 				self._surveys.remove(s)
-	            
+
 class QuestionPool(object):
 	def __init__(self):
 		self._dbName = "InitData.db"
@@ -272,7 +274,7 @@ class QuestionPool(object):
 		writer.dbinsertq(self._dbName, answerType, isMandatory, qString, 1)
 		qid = writer.dbGetNextUniqueID(self._dbName)
 		q = Question(qid, qString, answerType, isMandatory, 1)
-		self._questions.append(q)		
+		self._questions.append(q)
 
 	def generatePool(self):
 		#self.clearPool()
@@ -328,7 +330,7 @@ class ResponsePool(object):
 		query = "INSERT INTO RESPONSES (q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13, q14, q15, q16, q17, q18, q19, q20) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');" % (toInsert[0],toInsert[1],toInsert[2],toInsert[3],toInsert[4],toInsert[5],toInsert[6],toInsert[7],toInsert[8],toInsert[9],toInsert[10],toInsert[11],toInsert[12],toInsert[13],toInsert[14],toInsert[15],toInsert[16],toInsert[17],toInsert[18],toInsert[19])
 		writer.dbinsert(query, self._dbName)
 		newResponse = Response(responseList,rid)
-	
+
 		self._responses.append(newResponse)
 
 	def getResponse(self,responseID):
@@ -348,7 +350,7 @@ class ResponsePool(object):
 		writer = SQLWriter()
 		i = 0
 		while True:
-			query = "SELECT * FROM Responses WHERE rowid = %s" % str(i) 
+			query = "SELECT * FROM Responses WHERE rowid = %s" % str(i)
 			retVal = writer.dbselect(query, self._dbName)
 			if retVal == []:
 				break
@@ -373,12 +375,12 @@ class Survey(object):
 		self._coursename = coursename
 		self._dbName = str(coursename + ".db")
 		writer = SQLWriter()
-		writer.createSurveyDB(self._dbName) 
+		writer.createSurveyDB(self._dbName)
 		#self._uniqueID = uniqueID
 		self._questionList = [] #The question pool is merely a list of unique numbers
 		self._responsePool = ResponsePool(self._dbName)#TBD
 		self._stage = state #stage0 = after creation, to be approved, 1 = live, 2 = closed.
-	
+
 	def getCourseName(self):
 		return self._coursename
 
@@ -388,7 +390,7 @@ class Survey(object):
 		writer = SQLWriter()
 		query = "INSERT INTO Questions (QIDS) VALUES (%s)" % (str(q.getQuestionID()))
 		writer.dbinsert(query, self._dbName)
-	
+
 	#Given a list of question IDs, set the list of QIDs to those questions
 	def setQuestions(self, newQuestions):
 		self._questionList = newQuestions
@@ -422,7 +424,7 @@ class Survey(object):
 
 	def generateQuestions(self):
 		writer = SQLWriter()
-		query = "SELECT * FROM QUESTIONS" 
+		query = "SELECT * FROM QUESTIONS"
 		qidList = writer.dbselect(query, self._dbName)
 		for qid in qidList:
 			self._questionList.append(qid[0])
@@ -505,7 +507,7 @@ class SQLWriter(object):
 		cursorObj = connection.cursor() #Basically our file handle lol
 		rows = cursorObj.execute(query) #Add the query to the command queue, get responses
 		connection.commit() #Execute the command queue
-		results = [] 
+		results = []
 		for row in rows: #For every tuple we've beenr eturned
 			results.append(row) #Append this to our list of tuples
 		cursorObj.close() #Close cursor (like fclose)
@@ -527,7 +529,7 @@ class SQLWriter(object):
 		results = cursorObj.fetchall()
 		connection.commit()
 		cursorObj.close() #Close cursor (like fclose)
-		return results #We're done		
+		return results #We're done
 
 	def dbinsert(self, query, dbName):
 		connection = sqlite3.connect(dbName)
@@ -557,7 +559,7 @@ class SQLWriter(object):
 		connection.commit()
 		cursorObj.close()
 		return retVal
-	
+
 	def dbGetNextUniqueID(self, dbName):
 		connection = sqlite3.connect(dbName)
 		cursorObj = connection.cursor()
@@ -582,7 +584,7 @@ class SQLWriter(object):
 
 		cursorObj.close()
 		return retVal
-		
+
 	def createSurveyDB(self, dbName):
 		connection = sqlite3.connect(dbName);
 		cursorObj = connection.cursor();

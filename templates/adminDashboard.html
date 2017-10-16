@@ -4,48 +4,52 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-<style>	body {font-family: "Lato", sans-serif} </style>
-
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
 <body>
+
 <!-- Admin Navbar -->
     {% include 'adminNav.html' %}
 <!-- End Navbar -->
+    <div class="hi">
+        <h1>Admin Dashboard</h1>
+    </div>
 
-	<h1>Admin Dashboard</h1>
-	
-	<h3>Live Survey Forms</h3>
-	{% if slive %}
-	    {% for s in slive %}
-	        {{ s.course }}<br>
-	    {% endfor %}
-	{% else %}
-	No surveys are live.
-	{% endif %}
-	
-	<h3>Survey Forms To Be Reviewed</h3>
-	{% if sreviewed %}
-	    {% for s in sreviewed %}
-	        {{ s.course }}<br>
-	    {% endfor %}
-	{% else %}
-	No surveys have been added.
-	{% endif %}
-	
-	<h3>Questions In The System</h3>
-	
-	{% if qlist %}
-	    {% for q in qlist %}
-	        {{ q.string }}
-	        {% if q.isMCQ %}
-	            (MCQ)
-	        {% else %}
-	            (TEXT)
-	        {% endif %}
-	        <br>
-	    {% endfor %}
-	{% else %}
-	No questions have been added.
-	{% endif %}
+    <div class="main">
+        <h3>Live Survey Forms</h3>
+    	{% if slive %}
+    	    {% for s in slive %}
+    	        {{ s.course }}<br>
+    	    {% endfor %}
+    	{% else %}
+    	No surveys are live.
+    	{% endif %}
+
+    	<h3>Survey Forms To Be Reviewed</h3>
+    	{% if sreviewed %}
+    	    {% for s in sreviewed %}
+    	        {{ s.course }}<br>
+    	    {% endfor %}
+    	{% else %}
+    	No surveys have been added.
+    	{% endif %}
+
+    	<h3>Questions In The System</h3>
+
+    	{% if qlist %}
+    	    {% for q in qlist %}
+    	        {{ q.string }}
+    	        {% if q.isMCQ %}
+    	            (MCQ)
+    	        {% else %}
+    	            (TEXT)
+    	        {% endif %}
+    	        <br>
+    	    {% endfor %}
+    	{% else %}
+    	No questions have been added.
+    	{% endif %}
+    </div>
+
 
 <!-- Page content -->
 
