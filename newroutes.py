@@ -2,6 +2,9 @@ from flask import Flask, redirect, render_template, request, url_for
 from newserver import app, reader
 # from classes import Survey, Question, Authentication, User
 from newdb import Controller
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
 import csv
 
 #LOGIN PAGE
@@ -257,9 +260,22 @@ def studentSurveySubmitted():
 #VIEW METRICS
 @app.route('/metrics/<surveyName>')
 def metrics(surveyName):
-	global currentuser
-	resplist = reader.getMetrics(currentuser, surveyName)
-	return render_template('metrics.html', resplist = resplist)
+	# Information taken from https://plot.ly/python/bar-charts/
+	plot = [] #this will be a list of graphs
+	textQuestions = [] #this will hold question and responses
+	thisSurvey = allSurveys.getSurveyByName(surveyName)
+	questionList = getQuestionsForSurvey(thisSurvey.sid) 
+	allresponses = []
+	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
+		for question in questionList:
+			if question.getAnswerType(): #MCQ question
+				data = [go.Bar(x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree'], y = [getResponsesForQinS(thisSurvey.sid, question.qid)])]
+				plot.append([question.getQuestionString(), py.iplot(data, filename='basic bar')])
+			else:	#Text question
+				textQuestions.append([question.getQuestionString(), getResponsesForQinS(thisSurvey.sid, question.qid)])
+	else:
+		message = "Metrics are not available for this survey."
+	return render_template('metrics.html', plots = plot, textQuestions = textQuestions, message = message)
 
 
 @app.route('/student/metrics/<surveyName>')
