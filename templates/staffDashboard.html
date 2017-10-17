@@ -17,7 +17,7 @@
 	<h3>Courses To Be Reviewed</h3>
 	{% if sreviewed %}
 	    {% for s in sreviewed %}
-	        <a href="/staff/reviewSurvey/{{s.getCourseName()}}" class="w3-bar-item w3-button">{{ s.getCourseName() }}</a>
+	        <a href="/staff/reviewSurvey/{{s.course}}" class="w3-bar-item w3-button">{{ s.course }}</a>
 	        <br>
 	    {% endfor %}
 	{% else %}
@@ -27,7 +27,7 @@
 	<h3>Released Survey Results</h3>
 	{% if sclosed %}
 	    {% for survey in sclosed %}
-	        <a href="/metrics/{{ survey.getCourseName() }}" class="w3-bar-item w3-button">{{ survey.getCourseName() }}</a>
+	        <a href="/metrics/{{ survey.course }}" class="w3-bar-item w3-button">{{ survey.course }}</a>
 	        <br>
 	    {% endfor %}
 	{% else %}

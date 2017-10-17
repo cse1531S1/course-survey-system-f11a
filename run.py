@@ -1,2 +1,2 @@
-from routes import app
+from newroutes import app
 app.run(debug = True)
