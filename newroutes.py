@@ -263,8 +263,9 @@ def metrics(surveyName):
 	# Information taken from https://plot.ly/python/bar-charts/
 	plot = [] #this will be a list of graphs
 	textQuestions = [] #this will hold question and responses
-	thisSurvey = allSurveys.getSurveyByName(surveyName)
-	questionList = getQuestionsForSurvey(thisSurvey.sid) 
+	thisSurvey = reader.getSurveys(surveyName)
+	questionList = reader.getQuestionsForSurvey(thisSurvey.sid) 
+	##edit this stuff
 	allresponses = []
 	if (thisSurvey.getStage() == 3) or (thisSurvey.getStage() == 2 and currentuser.getPermission() == 0):
 		for question in questionList:
