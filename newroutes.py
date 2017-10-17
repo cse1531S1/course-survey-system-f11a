@@ -278,6 +278,7 @@ def metrics(surveyName):
 	return render_template('metrics.html', plots = plot, textQuestions = textQuestions, message = message)
 
 
+
 @app.route('/student/metrics/<surveyName>')
 def studentMetrics(surveyName):
 	global currentuser

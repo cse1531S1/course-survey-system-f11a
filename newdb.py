@@ -1,4 +1,3 @@
-from sqlalchemy import update 
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -100,10 +99,7 @@ Base.metadata.create_all(engine)
 
 class Controller(object):
     def isValidUser(self, username, password):
-    	try:
-    		return session.query(Users).filter_by(   zid=str(username),password=str(password)  ).one
-    	except:
-        	return None  
+        return session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
 
 #Questions
     def addNewQuestion(self, question, entrytype, questiontype):
