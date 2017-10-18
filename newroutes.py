@@ -2,6 +2,9 @@ from flask import Flask, redirect, render_template, request, url_for
 from newserver import app, reader
 # from classes import Survey, Question, Authentication, User
 from newdb import Controller
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
 import csv
 
 #LOGIN PAGE
@@ -329,13 +332,57 @@ def studentSurveySubmitted():
 @app.route('/metrics/<surveyName>')
 def metrics(surveyName):
 	global auth
-	if auth != 0:
+	if auth != 0 :
 		error = "Invalid Permissions. Please log in and try again."
 		return render_template('login.html', error = error)
-	else:	
+	else:
+		# Information taken from https://plot.ly/python/bar-charts/
+		message = ""
 		global currentuser
 		resplist = reader.getMetrics(currentuser, surveyName)
-		return render_template('metrics.html', resplist = resplist)
+		sid = reader.getSurvey(surveyName).sid
+		qid_list = []
+		plots = [] #this will be a list of graphs
+		textQuestions = [] #this will hold question and responses
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		
+		for response in resplist:
+			qid = response.q_id
+			try: #check if in list
+				index = qid_list.index(qid)
+			except: #if not in list 
+				qid_list.append(qid)
+		
+		for qid in qid_list:
+			question = reader.getQuestionFromId(qid)
+			if question.isMCQ:
+				# add MCQ info to plot format
+				y = [0, 0, 0, 0, 0]
+				for response in resplist:
+					if response.q_id == qid:
+						y[int(response.string)] = y[int(response.string)] + 1
+				
+				print(question.string)
+				print(x)
+				print(y)
+				
+				#data = []
+				data = [go.Bar(x=x, y=y)]
+				extension = plotly.offline.plot(data, filename=('templates/basic-bar-qid='+str(qid))+'.html')
+				extension = extension.split('/')[-1]
+				
+				#plots.append([question.string, py.iplot(data, filename='basic bar')])
+				plots.append([question.string, extension])
+				
+			else : #text responses
+				answerlist = []
+				for response in resplist:
+					if response.q_id == qid:
+						answerlist.append(response.string)
+				textQuestions.append([question.string , answerlist])
+				
+		
+		return render_template('metrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
 
 
 @app.route('/student/metrics/<surveyName>')
@@ -346,8 +393,57 @@ def studentMetrics(surveyName):
 		return render_template('login.html', error = error)
 	else:	
 		global currentuser
+		# Information taken from https://plot.ly/python/bar-charts/
+		message = ""
+		global currentuser
 		resplist = reader.getMetrics(currentuser, surveyName)
-		return render_template('studentmetrics.html', resplist = resplist)
+		sid = reader.getSurvey(surveyName).sid
+		qid_list = []
+		plots = [] #this will be a list of graphs
+		textQuestions = [] #this will hold question and responses
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		
+		for response in resplist:
+			qid = response.q_id
+			try: #check if in list
+				index = qid_list.index(qid)
+			except: #if not in list 
+				qid_list.append(qid)
+		
+		for qid in qid_list:
+			question = reader.getQuestionFromId(qid)
+			if question.isMCQ:
+				# add MCQ info to plot format
+				y = [0, 0, 0, 0, 0]
+				for response in resplist:
+					if response.q_id == qid:
+						y[int(response.string)] = y[int(response.string)] + 1
+				
+				print(question.string)
+				print(x)
+				print(y)
+				
+				#data = []
+				data = [go.Bar(x=x, y=y)]
+				extension = plotly.offline.plot(data, filename=('templates/basic-bar-qid='+str(qid))+'.html')
+				extension = extension.split('/')[-1]
+				
+				#plots.append([question.string, py.iplot(data, filename='basic bar')])
+				plots.append([question.string, extension])
+				
+			else : #text responses
+				answerlist = []
+				for response in resplist:
+					if response.q_id == qid:
+						answerlist.append(response.string)
+				textQuestions.append([question.string , answerlist])
+				
+		
+		return render_template('studentmetrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
+
+		
+		
+
 # #--------------------------functions for constructing courses --------------------------------------
 # #---------------------------------------------------------------------------------------------------
 # def inList(list_current, to_find):
