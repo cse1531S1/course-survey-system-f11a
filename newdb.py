@@ -446,6 +446,8 @@ class ResponsePool(SurveySystem)
 		# SHOULD BUILD RESPONSE OBJECTS BASED ON STUFF IN DATABASE AND ADD THEM TO THE LIST
 		# PLEASE CODE THIS
 
+	#FEEL FREE TO ADD MORE FUNCTIONS TO INTERACT WITH ROUTES
+
 	def addNewResponse(self, answer, questionid, survey, user):
 		session = self.DBSession
 		response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
