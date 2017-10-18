@@ -331,15 +331,61 @@ def studentSurveySubmitted():
 #VIEW METRICS
 @app.route('/metrics/<surveyName>')
 def metrics(surveyName):
+#	global auth
+#	if False: #if auth != 0
+#		error = "Invalid Permissions. Please log in and try again."
+#		return render_template('login.html', error = error)
+#	else:	
+#		# Information taken from https://plot.ly/python/bar-charts/
+#		plot = [] #this will be a list of graphs
+#		textQuestions = [] #this will hold question and responses
+#		thisSurvey = reader.getSurvey(surveyName)
+#		qid_list = reader.getQuestionsForSurvey(thisSurvey.sid) 
+#		allresponses = []
+#		if True: #authenticate allowable metrics viewing for this survey and user
+#			for qid in qid_list:
+#				question = reader.getQuestionFromId(qid)
+#				if question.isMCQ: #MCQ question
+#					data = [go.Bar(x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree'], y = [getResponsesForQinS(thisSurvey.sid, question.qid)])]
+#					plot.append([question.getQuestionString(), py.iplot(data, filename='basic bar')])
+#				else:	#Text question
+#					textQuestions.append([question.getQuestionString(), getResponsesForQinS(thisSurvey.sid, question.qid)])
+#		else:
+#			message = "Metrics are not available for this survey."
+#	return render_template('metrics.html', plots = plot, textQuestions = textQuestions, message = message)
 	global auth
-	if auth != 0:
+	if False: #auth != 0 
 		error = "Invalid Permissions. Please log in and try again."
 		return render_template('login.html', error = error)
 	else:	
 		global currentuser
 		resplist = reader.getMetrics(currentuser, surveyName)
-		return render_template('metrics.html', resplist = resplist)
-
+		sid = reader.getSurvey(surveyName).sid
+		qid_list = []
+		plots = [] #this will be a list of graphs
+		textQuestions = [] #this will hold question and responses
+		
+		for response in resplist:
+			if response.s_id == sid:
+				qid = response.q_id
+				try: #check if in list
+					index = qid_list.index(qid)
+				except: #if not in list 
+					qid_list.append(qid)
+		
+		for qid in qid_list:
+			question = reader.getQuestionFromId(qid)
+			if question.isMCQ:
+				# add MCQ info to plot format
+				plots = []
+			else : #text responses
+				answerlist = []
+				for response in resplist:
+					if response.q_id == qid:
+						answerlist.append(response.string)
+				
+		
+		return render_template('metrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
 
 
 @app.route('/student/metrics/<surveyName>')
@@ -352,6 +398,9 @@ def studentMetrics(surveyName):
 		global currentuser
 		resplist = reader.getMetrics(currentuser, surveyName)
 		return render_template('studentmetrics.html', resplist = resplist)
+		
+		
+
 # #--------------------------functions for constructing courses --------------------------------------
 # #---------------------------------------------------------------------------------------------------
 # def inList(list_current, to_find):
