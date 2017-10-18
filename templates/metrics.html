@@ -16,17 +16,21 @@
 	<form action="" method="post">
 	<h1>All Responses</h1>
 
+	{% set counter = 1 %}
+		
    	{% if message %}
    		{{ message }}
    	{% else %}
    		<h2>MCQ questions</h2>
    		{% for plot in plots %}
-   			<h3>{{ plot[0] }}</h3>
-   			{{ plot[1] }}
+   			<h3>{{ counter }}.{{ plot[0] }}</h3>
+   			{% set counter = counter + 1 %}
+   			{{ py.iplot(plot[1], filename='basic-bar') }}
    		{% endfor %}
    		<h2>Text Questions</h2>
    		{% for question in textQuestions %}
-   			<h3>{{ question[0] }}</h3>
+   			<h3>{{ counter }}.{{ question[0] }}</h3>
+   			{% set counter = counter + 1 %}
    			{% for text in question[1] %}
    			   {{ text }}<br>
    			{% endfor %}

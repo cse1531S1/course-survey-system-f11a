@@ -24,11 +24,11 @@
       {% for q in questions %}
         <h3>{{ q.string }}</h3>
         {% if q.isMCQ %}
-            <input type="radio" name="{{ q.string }}" value="1"> 1
-            <input type="radio" name="{{ q.string }}" value="2"> 2
-            <input type="radio" name="{{ q.string }}" value="3"> 3
-            <input type="radio" name="{{ q.string }}" value="4"> 4
-            <input type="radio" name="{{ q.string }}" value="5"> 5
+            <input type="radio" name="{{ q.string }}" value="0"> 1
+            <input type="radio" name="{{ q.string }}" value="1"> 2
+            <input type="radio" name="{{ q.string }}" value="2"> 3
+            <input type="radio" name="{{ q.string }}" value="3"> 4
+            <input type="radio" name="{{ q.string }}" value="4"> 5
         {% else %}
             <input type="text" placeholder="Please enter answer" name="{{ q.string }}">
         {% endif %}

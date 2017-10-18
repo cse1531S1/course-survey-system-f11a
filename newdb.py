@@ -256,18 +256,6 @@ class Controller(object):
 		print('response', allresponses)
 		return allresponses
 
-	def getQuestionsForSurvey(self, sid):
-		qid_list = []
-		qid_list = session.query(surveys_questions).filter_by(sid = sid).all()
-		return qid_list
-
-	def getResponsesForQinS(sid, qid):
-		resplist = []
-		resplist = session.query(Responses).filter_by(s_id=sid, q_id=qid).all()
-		print("-----------------This is the response list--------------")
-		print(resplist)
-		return resplist
-    
 
 
 
