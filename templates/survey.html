@@ -22,7 +22,12 @@
     {% autoescape false %}
       <form method="POST">
       {% for q in questions %}
-        <h3>{{ q.string }}</h3>
+        <h3>
+        {{ q.string }}
+        {% if q.isMan == 0%}
+          (Optional Question)
+        {% endif %}
+        </h3>
         {% if q.isMCQ %}
             <input type="radio" name="{{ q.string }}" value="0"> 1
             <input type="radio" name="{{ q.string }}" value="1"> 2

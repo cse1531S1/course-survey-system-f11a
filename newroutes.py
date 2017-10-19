@@ -291,25 +291,32 @@ def survey(surveyName):
 	else:
 		thisSurvey = reader.getSurvey(surveyName)
 		questionlist = thisSurvey.questions
+		print('allQuestions in survey page', questionlist)
+		manquestions = reader.getMandatorySurveyQuestions(thisSurvey)
 
 		if request.method == 'POST':
 			#for each question object
-			count = 0
 			for v in request.form:
-				count+=1
 				print('question',str(v))
 				print('ans',request.form[v])
 				
-				#ISSUE: how to check if 
-				thisQuestion = reader.getQuestion(v)
+				thisQuestion = reader.getQuestion(str(v))
+				if request.form[v] != "":
+					if thisQuestion in manquestions:
+						manquestions.remove(thisQuestion)
+
 				global currentuser
-				thisResponse = reader.addNewResponse(request.form[v], thisQuestion.qid, thisSurvey, currentuser)
+				thisResponse = reader.addNewResponse(str(request.form[v]), thisQuestion.qid, thisSurvey, currentuser)
 				print(thisResponse.string)
 				thisQuestion.responses.append(thisResponse)
 
-			if count != len(questionlist):
-				message = "ERROR: Please enter a response to all questions"
+			print(len(manquestions))
+			if len(manquestions):
+				message = "ERROR: Please enter a response to all mandatory questions"
 				reader.removeNullResponses(thisSurvey)
+				manquestions = reader.getMandatorySurveyQuestions(thisSurvey)
+				print("reloaded manquestions", manquestions)
+				questionlist = thisSurvey.questions
 				return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 
 			

@@ -175,6 +175,14 @@ class Controller(object):
     def getSurvey(self, coursename):
         return session.query(Surveys).filter_by(course = coursename).one_or_none()
 
+    def getMandatorySurveyQuestions(self, survey):
+        manquestionlist = []
+        for q in survey.questions:
+            if q.isMan == 1:
+                manquestionlist.append(q)
+        return manquestionlist
+
+
     def getReviewSurveys(self):
         rslist = []
         for survey in session.query(Surveys).filter_by(stage = 0).all():
