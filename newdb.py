@@ -399,15 +399,16 @@ class SurveyPool(SurveySystem):
 
 	def getClosedSurveys(self):
 		cslist = []
-		for  in self._surveyList:
+		for c in self._surveyList:
 			if c.getStage() == 2:
 				cslist.append(c)
 		return cslist
 
 
 	def getMyReviewSurveys(self, currentuser):
+		#NOT SURE HWAT IS GOING ON HERE??????
 		cslist = []
-		for  in self._surveyList:
+		for c in self._surveyList:
 			if c.getStage() == 2 and c.getCourse() is in currentuser.getCourses() :
 				cslist.append(c)
 		return cslist
@@ -454,6 +455,14 @@ class ResponsePool(SurveySystem)
 	def findResponses(self):
 		# SHOULD BUILD RESPONSE OBJECTS BASED ON STUFF IN DATABASE AND ADD THEM TO THE LIST
 		# PLEASE CODE THIS
+		#WRITTEN BUT COULD USE A CHECK
+		session = self.DBSession
+		respObjs_list = []
+		for response in session.query(Responses).all():
+			respObj = Response(response.rid, response.s_id, response.q_id, response.u_id, response.string)
+			respObjs_list.append(respObj)
+		session.close()
+		return respObjs_list
 
 	#FEEL FREE TO ADD MORE FUNCTIONS TO INTERACT WITH ROUTES
 
