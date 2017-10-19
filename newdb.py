@@ -356,9 +356,17 @@ class SurveyPool(SurveySystem):
 		self._surveyList = self._findSurveys()
 
 	def findSurveys():
-		#SOMEONE PLEASE WRITE THIS
-		#SHOULD, BASED ON THE DATABASE, CREATE A BUNCH OF SURVEY OBJECTS AND ADD THEM TO A LIST
-		#IT SHOULD THEN RETURN THAT LIST
+		#WRITTEN BUT COULD USE A CHECK
+		session = self.DBSession
+		surveyObjs_list = []
+		for survey in session.query(Surveys).all():
+			surveyObj = Survey(survey.course, survey.sid)
+			surveyObj.setStage(survey.stage)
+			surveyObj.setRIDList(survey.responses)
+			surveyObj.setQList(survey.questions)
+			surveyObjs_list.append(surveyObj)
+		session.close()
+		return surveyObjs_list
 
 	def addNewSurvey(self, surveyname):
 		thissurvey = Surveys(course = str(surveyname), stage = 0)
@@ -437,6 +445,7 @@ class SurveyPool(SurveySystem):
 		session.commit()
 		session.close()
 		#ALSO NEED TO DELETE SURVEY FROM LIST
+		self._surveyList.remove(survey) #I think this works but needs checking
 
 class ResponsePool(SurveySystem)
 	def __init__(self):
