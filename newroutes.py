@@ -1,7 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
-from newserver import app, reader
-# from classes import Survey, Question, Authentication, User
-from newdb import Controller
+from newserver import app #NEED TO GET OBJECT INSTACES FROM NEWSERVER 
 import csv
 
 #LOGIN PAGE
