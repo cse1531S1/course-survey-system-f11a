@@ -36,11 +36,15 @@ Base = declarative_base()
 ##########SQLALCHEMY CLASSES##############
 ##########################################
 
-class UsersCourses(Base):
-	__tablename__ = "users_courses"
-	userid = Column(Integer, ForeignKey('USERS.zid'), primary_key=True)
-	userid = Column(String, ForeignKey('COURSES.coursename'), primary_key=True)
+users_courses = Table('users_courses', Base.metadata, 
+                            Column('userid', Integer, ForeignKey('USERS.zid'), primary_key=True),
+                            Column('coursename', String, ForeignKey('COURSES.coursename'), primary_key=True),
+                            )
 
+surveys_questions = Table('surveys_questions', Base.metadata,
+							Column('qid', Integer, ForeignKey('QUESTIONS.qid'), primary_key=True),
+							Column('sid', Integer, ForeignKey('SURVEYS.sid'), primary_key=True)
+							)
 
 class Users(Base):
 
@@ -68,13 +72,6 @@ class Courses(Base):
 
 
 
-class SurveysQuestions(Base):
-	__tablename__ = "surveys_questions"
-	qid = Column(Integer, ForeignKey('QUESTIONS.qid'),primary_key=True)
-	sid = Column(Integer, ForeignKey('SURVEYS.sid'),primary_key=True)
-
-
-	
 class Surveys(Base):
 
 	__tablename__ = 'SURVEYS'
@@ -104,8 +101,8 @@ class Questions(Base):
 	responses = relationship('Responses', back_populates='question')
 
 	def __repr__(self):
-		return "<Questions(qid='%s', string='%s', isMCQ='%s', isMan='%s')>" % (self.qid,
-													 self.string, self.isMCQ, self.isMan)
+		return "<Questions(qid='%s', string='%s', isMCQ='%s', isMan='%s', isVis = '%s')>" % (self.qid,
+													 self.string, self.isMCQ, self.isMan, self.isVis)
 
 
 
@@ -150,7 +147,7 @@ class Responses(Base):
 
 
 class SurveySystem(object):
-	def __init__(self, surveypool, questionpool, responsepool, currentuser):
+	def __init__(self):
 		#Database config
 		self.engine = create_engine('sqlite:///SystemData.db') #Creates am engine
 		try:
@@ -168,10 +165,11 @@ class SurveySystem(object):
 
 class Authentication(SurveySystem):
 		def __init__(self):
+			SurveySystem.__init__(self)
 			self._currentPerm = -1
 
 		def isValidUser(self, username, password):
-			session = self.DBSession
+			session = self.DBSession()
 			retVal = session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
 			session.close()
 			return retVal
@@ -196,6 +194,7 @@ class Authentication(SurveySystem):
 #User class objet
 class User(SurveySystem):
 	def __init__(self, uid, password, permission):
+		SurveySystem.__init__(self)
 		self._uid = uid
 		self._password = password
 		self._permission = permission
@@ -239,16 +238,20 @@ class User(SurveySystem):
 		session.close()
 		return courses
 
+	#!!!!!!!!!!!!TODO!!!!!!!!!!!!!!!!!!
 	def findCompleted(self):
-		session = self.DBSession
+		session = self.DBSession()
 		#search through responses table, and return sids for each ocurence of our zid
 		#then, search through surveys table, and get 
 		session.close
 
 class QuestionPool(SurveySystem):
 	def __init__(self):
+		SurveySystem.__init__(self)
 		self._questions = self.findAllQuestions()
 
+
+	#!!!!!!!!!!!!TODO!!!!!!!!!!!!!!!!!!
 	#Add a new question to the list/database
 	def addNewQuestion(self, question, entrytype, questiontype):
 		question = Questions(string = str(question), isMCQ = entrytype, isMan = questiontype)
@@ -289,7 +292,7 @@ class QuestionPool(SurveySystem):
 
 	# Find all questions in the database and return the list
 	def findAllQuestions(self):
-		session = self.DBSession
+		session = self.DBSession()
 		qlist = []
 		for question in session.query(Questions).all():
 			qlist.append(question)
@@ -298,27 +301,28 @@ class QuestionPool(SurveySystem):
 
 	# Locates a question in the database given a question id
 	def findQuestion(self, qstring):
-		session = self.DBSession
+		session = self.DBSession()
 		retVal =  session.query(Questions).filter_by(string=qstring).one_or_none()
 		session.close()
 		return retVal
 
 	# Removes a question given a question id
 	def removeQuestion(self, questionid):
-		session = self.DBSession
+		session = self.DBSession()
 		session.query(Questions).filter_by(qid = questionid).delete(synchronize_session=False)
 		session.commit()
 		session.close()
 
 class CoursePool(SurveySystem):
 	def __init__(self):
+		SurveySystem.__init__(self)
 		self._courses = self.findCoursesList()
 
 	def getCourseList(self):
 		return self._courses
 
 	def findCourses(self, semester):
-		session = self.DBSession
+		session = self.DBSession()
 		courses = []
 		for course in session.query(Courses).all():
 			coursecode = course.coursename[:8]
@@ -330,7 +334,7 @@ class CoursePool(SurveySystem):
 		return courses
 
 	def findSemesters(self):
-		session = self.DBSession
+		session = self.DBSession()
 		semlist = []
 		for semester in session.query(Courses).all():
 			sem = semester.coursename[8:]
@@ -340,7 +344,7 @@ class CoursePool(SurveySystem):
 		return semlist
 
 	def findCoursesList(self):
-		session = self.DBSession
+		session = self.DBSession()
 		semesters = self.getSemesters()
 		courses = {}
 		for sem in semesters:
@@ -351,13 +355,14 @@ class CoursePool(SurveySystem):
 
 class SurveyPool(SurveySystem):
 	def __init__(self):
+		SurveySystem.__init__(self)
 		self._questionPool = QuestionPool()
 		self._responsePool = ResponsePool()
-		self._surveyList = self._findSurveys()
+		self._surveyList = self.findSurveys()
 
-	def findSurveys():
-		#WRITTEN BUT COULD USE A CHECK
-		session = self.DBSession
+	#Queries the database and returns a list of all currently saved survey objects
+	def findSurveys(self):
+		session = self.DBSession()
 		surveyObjs_list = []
 		for survey in session.query(Surveys).all():
 			surveyObj = Survey(survey.course, survey.sid)
@@ -368,14 +373,16 @@ class SurveyPool(SurveySystem):
 		session.close()
 		return surveyObjs_list
 
+	#Adds a new survey to the database
 	def addNewSurvey(self, surveyname):
+		session = self.DBSession()
 		thissurvey = Surveys(course = str(surveyname), stage = 0)
-		session = self.DBSession
 		session.add(thissurvey)
 		session.commit()
 		session.close()
 		return thissurvey
 
+	#Searches for survey in current list given a coursename, returns survey objet
 	def getSurvey(self, coursename):
 		retVal = None
 		for s in self._surveyList:
@@ -383,6 +390,7 @@ class SurveyPool(SurveySystem):
 				retVal = s
 		return retVal
 
+	# Returns all survey objects of stage 0
 	def getReviewSurveys(self):
 		rslist = []
 		for s in self._surveyList:
@@ -390,6 +398,7 @@ class SurveyPool(SurveySystem):
 				rslist.append(s)
 		return rslist
 
+	# Returns all survey objects of stage 1
 	def getLiveSurveys(self):
 		lslist = []
 		for l in self._surveyList:
@@ -397,6 +406,7 @@ class SurveyPool(SurveySystem):
 				lslist.append(l)
 		return lslist
 
+	# Returns all survey objects of stage 2
 	def getClosedSurveys(self):
 		cslist = []
 		for c in self._surveyList:
@@ -404,22 +414,22 @@ class SurveyPool(SurveySystem):
 				cslist.append(c)
 		return cslist
 
-
+	# Given a user object, will return a list of survey objects needed for that user to review
 	def getMyReviewSurveys(self, currentuser):
-		#NOT SURE HWAT IS GOING ON HERE??????
 		cslist = []
 		for c in self._surveyList:
-			if c.getStage() == 2 and (c.getCourse() in currentuser.getCourses()) :
+			if c.getStage() == 1 and (c.getCourse() in currentuser.getCourses()) :
 				cslist.append(c)
 		return cslist
 
-
+	# Given a user object, will return a list of survey objects for closed surveys
 	def getMyClosedSurveys(self, currentuser):
 		for subject in currentuser.enrolment:
 			surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=2).all()
 		return surveys
 
 	def getMyLiveSurveys(self, currentuser):
+		session = self.DBSession()
 		removeitem = False
 		for subject in currentuser.enrolment:
 			surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=1).all()
@@ -436,25 +446,27 @@ class SurveyPool(SurveySystem):
 		print('final survey', surveys)
 		return surveys
 
+	#Given a surveys object, sets the stage
 	def setStage(self, survey, Stage):
 		survey.stage = Stage
 		session.commit()
 
+	#Given a survey object, delete it from the list
 	def deleteSurvey(self, survey):
-		session = self.DBSession
+		session = self.DBSession()
 		session.query(Surveys).filter_by(sid=survey).delete(synchronize_session=False)
 		session.commit()
 		session.close()
-		#ALSO NEED TO DELETE SURVEY FROM LIST
 		self._surveyList.remove(survey) #I think this works but needs checking
 
 class ResponsePool(SurveySystem):
 	def __init__(self):
+		SurveySystem.__init__(self)
 		self._responses = self.findResponses()
 
 	def findResponses(self):
 		#WRITTEN BUT COULD USE A CHECK
-		session = self.DBSession
+		session = self.DBSession()
 		respObjs_list = []
 		for response in session.query(Responses).all():
 			respObj = Response(response.rid, response.s_id, response.q_id, response.u_id, response.string)
@@ -465,7 +477,7 @@ class ResponsePool(SurveySystem):
 	#FEEL FREE TO ADD MORE FUNCTIONS TO INTERACT WITH ROUTES
 
 	def addNewResponse(self, answer, questionid, survey, user):
-		session = self.DBSession
+		session = self.DBSession()
 		response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
 		session.add(response)
 		session.commit()
