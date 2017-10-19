@@ -48,7 +48,7 @@ class Users(Base):
 	zid = Column(String, primary_key=True)
 	password = Column(String)
 	permission = Column(Integer) #0 = admin, 1 = staff, 2 = student
-	enrolment = relationship("Courses", secondary = users_courses, back_populates='users')
+	enrolment = relationship("Courses", secondary = 'users_courses', back_populates='users')
 	response = relationship("Responses", back_populates='user')
 
 	def __repr__(self):
@@ -409,7 +409,7 @@ class SurveyPool(SurveySystem):
 		#NOT SURE HWAT IS GOING ON HERE??????
 		cslist = []
 		for c in self._surveyList:
-			if c.getStage() == 2 and c.getCourse() is in currentuser.getCourses() :
+			if c.getStage() == 2 and (c.getCourse() in currentuser.getCourses()) :
 				cslist.append(c)
 		return cslist
 
@@ -448,13 +448,11 @@ class SurveyPool(SurveySystem):
 		#ALSO NEED TO DELETE SURVEY FROM LIST
 		self._surveyList.remove(survey) #I think this works but needs checking
 
-class ResponsePool(SurveySystem)
+class ResponsePool(SurveySystem):
 	def __init__(self):
 		self._responses = self.findResponses()
 
 	def findResponses(self):
-		# SHOULD BUILD RESPONSE OBJECTS BASED ON STUFF IN DATABASE AND ADD THEM TO THE LIST
-		# PLEASE CODE THIS
 		#WRITTEN BUT COULD USE A CHECK
 		session = self.DBSession
 		respObjs_list = []
