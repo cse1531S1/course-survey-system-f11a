@@ -1,5 +1,9 @@
 from flask import Flask
-from newdb import Controller
+from newdb import Surveys, Questions, Responses, Courses, Users
 
 app = Flask(__name__)
-reader = Controller()
+Survey = Surveys()
+Question = Questions()
+Response = Responses()
+Course = Courses()
+User = Users()
