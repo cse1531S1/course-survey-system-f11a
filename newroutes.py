@@ -35,6 +35,33 @@ def login():
 				return redirect(url_for('studentdashboard'))
 			
 	return render_template('login.html', error=error)
+	
+@app.route('/login/error', methods=["GET","POST"])
+def login_error():
+	error = 'Invalid Credentials. Please try again.'
+	global auth
+	auth = -1
+	if request.method == 'POST':
+		#check for user against database
+		global currentuser
+		currentuser = User.isValidUser(request.form['zID'], request.form['password'])
+
+		if currentuser == None:
+			error = 'Invalid Credentials. Please try again.'
+		else:
+			if currentuser.permission == 0:
+				auth = 0
+				return redirect(url_for('admindashboard'))
+				
+			elif currentuser.permission == 1:
+				auth = 1
+				return redirect(url_for('staffdashboard'))
+				
+			else:
+				auth = 2
+				return redirect(url_for('studentdashboard'))
+			
+	return render_template('login.html', error=error)
 
 
 #ADMIN DASHBOARD
@@ -43,7 +70,7 @@ def admindashboard():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 
 		questionlist = Question.getAllQuestions()
@@ -63,7 +90,7 @@ def addquestions():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    submitted = None;
 	    if request.method == 'POST':
@@ -93,7 +120,7 @@ def addedquestions():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    return render_template('addedQuestion.html')
     
@@ -105,7 +132,7 @@ def questionlist():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		mandatoryq = []
 		optionalq = []
@@ -124,7 +151,7 @@ def newsurvey():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:	
 		courses_list = Course.getCoursesList()
 		semesters = Course.getSemesters()
@@ -138,7 +165,7 @@ def viewActiveSurveys():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    #select surveys to close
 	    if request.method == 'POST':
@@ -157,7 +184,7 @@ def courseObject(coursename, semestername):
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		if request.method == "POST":
 			surveyname = coursename+semestername
@@ -184,7 +211,7 @@ def questionselected():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		if request.method == "POST":
 			name = request.form["bt"]
@@ -207,7 +234,7 @@ def staffdashboard():
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		global currentuser
 		tobereviewed = Survey.getMyReviewSurveys(currentuser)
@@ -222,7 +249,7 @@ def reviewSurvey(surveyName):
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		#this takes in all the questions associated with survey so far (assuming these are mandatory)
 		#make sure that each survey is only filled out once by any staff
@@ -247,7 +274,7 @@ def finishedReview():
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		message = "Survey was sucessfully reviewed." #Make this display if the survey was sucessful or not 
 		return render_template('staffSurveySubmitted.html', message = message)
@@ -261,7 +288,7 @@ def studentdashboard():
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		# global metricsViewable
 		global currentuser
@@ -276,7 +303,7 @@ def survey(surveyName):
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		thisSurvey = Survey.getSurvey(surveyName)
 		questionlist = Survey.getQuestionsInSurvey(thisSurvey)
@@ -320,7 +347,7 @@ def studentSurveySubmitted():
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		return render_template('surveySubmitted.html')
 	
@@ -331,7 +358,7 @@ def metrics(surveyName):
 	global auth
 	if auth != 0 :
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		# Information taken from https://plot.ly/python/bar-charts/
 		message = ""
@@ -387,7 +414,7 @@ def studentMetrics(surveyName):
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:	
 		global currentuser
 		# Information taken from https://plot.ly/python/bar-charts/
