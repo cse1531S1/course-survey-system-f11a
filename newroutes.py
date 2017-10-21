@@ -1,15 +1,13 @@
 from flask import Flask, redirect, render_template, request, url_for
-from newserver import app, reader
-# from classes import Survey, Question, Authentication, User
-from newdb import Controller
+from newserver import app, Survey, Question, Response, User, Course
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
-import csv
 
 #LOGIN PAGE
 global currentuser
 global auth
+
 
 @app.route('/', methods=["GET","POST"])
 def login():
@@ -19,7 +17,7 @@ def login():
 	if request.method == 'POST':
 		#check for user against database
 		global currentuser
-		currentuser = reader.isValidUser(request.form['zID'], request.form['password'])
+		currentuser = User.isValidUser(request.form['zID'], request.form['password'])
 
 		if currentuser == None:
 			error = 'Invalid Credentials. Please try again.'
@@ -42,18 +40,16 @@ def login():
 #ADMIN DASHBOARD
 @app.route('/admin/dashboard')
 def admindashboard():
-	#need live survey forms, survey to be reviewed, questions in the system
-	# slist = allSurveys.getSurveyList()
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
 		return render_template('login.html', error = error)
 	else:
 
-		questionlist = reader.getAllQuestions()
-		tobereviewed = reader.getReviewSurveys()
-		slive = reader.getLiveSurveys()
-		sclosed = reader.getClosedSurveys()
+		questionlist = Question.getAllQuestions()
+		tobereviewed = Survey.getReviewSurveys()
+		slive = Survey.getLiveSurveys()
+		sclosed = Survey.getClosedSurveys()
 		
 		metricsViewable = True
 
@@ -86,7 +82,7 @@ def addquestions():
 	            	questiontype = 0
 	            if etype == "text":
 	            	entrytype = 0
-	            reader.addNewQuestion(question, entrytype, questiontype)
+	            Question.addNewQuestion(question, entrytype, questiontype)
 
 	        return redirect(url_for('addedquestions'))
 	    return render_template('addQuestion.html', status = submitted)
@@ -114,10 +110,10 @@ def questionlist():
 		mandatoryq = []
 		optionalq = []
 		if request.method == 'POST':
-			reader.removeQuestion(request.form["submit"])
+			Question.removeQuestion(request.form["submit"])
 	    	
-		mandatoryq = reader.getMandatoryQuestions()
-		optionalq = reader.getOptionalQuestions()
+		mandatoryq = Question.getMandatoryQuestions()
+		optionalq = Question.getOptionalQuestions()
 
 		return render_template('allQuestions.html', optionalq = optionalq, mandatoryq = mandatoryq)
 
@@ -130,8 +126,8 @@ def newsurvey():
 		error = "Invalid Permissions. Please log in and try again."
 		return render_template('login.html', error = error)
 	else:	
-		courses_list = reader.getCoursesList()
-		semesters = reader.getSemesters()
+		courses_list = Course.getCoursesList()
+		semesters = Course.getSemesters()
 
 		#pass though dictionary of courses with semester as keys and sem list as key list
 		return render_template('chooseSession.html', courses = courses_list, semesters = semesters)
@@ -146,11 +142,11 @@ def viewActiveSurveys():
 	else:
 	    #select surveys to close
 	    if request.method == 'POST':
-	    	thisSurvey = reader.getSurvey(request.form["submit"])
-	    	reader.setStage(thisSurvey, 2)
+	    	thisSurvey = Survey.getSurvey(request.form["submit"])
+	    	Survey.setStage(thisSurvey, 2)
 	    	metricsViewable = True
 
-	    slive = reader.getLiveSurveys()
+	    slive = Survey.getLiveSurveys()
 
 	    return render_template('viewSurveyList.html', surveyList = slive)
 
@@ -165,27 +161,20 @@ def courseObject(coursename, semestername):
 	else:
 		if request.method == "POST":
 			surveyname = coursename+semestername
-			if reader.getSurvey(surveyname):
-				reader.deleteSurvey(surveyname)
-			
-			# Implement afterwards - if creating an existing survey
-			# if allSurveys.getSurveyByName(surveyname):
-			#     allSurveys.deleteSurvey(surveyname)
+			if Survey.getSurvey(surveyname):
+				Survey.deleteSurvey(surveyname)
 				
-			thisSurvey = reader.addNewSurvey(surveyname)
-			print('survey added')
+			thisSurvey = Survey.addNewSurvey(surveyname)
 			for v in request.form:
-				thisQuestion = reader.getQuestion(v)
+				thisQuestion = Question.getQuestion(v)
 				if thisQuestion != None:
-					print(thisSurvey)
-					print(thisQuestion)
-					reader.addQuestion(thisSurvey, thisQuestion)
+					Survey.addQuestion(thisSurvey, thisQuestion)
 
 			return redirect(url_for('questionselected'))
 		
 		#Else, get questionlist from pool, and display these onto the screen as checkboxes
 		else:
-			mandatoryQ = reader.getMandatoryQuestions()	
+			mandatoryQ = Question.getMandatoryQuestions()	
 			return render_template('choosequestions.html', questions = mandatoryQ)
 
 
@@ -221,9 +210,9 @@ def staffdashboard():
 		return render_template('login.html', error = error)
 	else:
 		global currentuser
-		tobereviewed = reader.getMyReviewSurveys(currentuser)
+		tobereviewed = Survey.getMyReviewSurveys(currentuser)
 		# reviewed = reader.getMyReviewedSurveys()
-		sclosed = reader.getMyClosedSurveys(currentuser)
+		sclosed = Survey.getMyClosedSurveys(currentuser)
 
 		return render_template('staffDashboard.html', sreviewed = tobereviewed, sclosed = sclosed)
 
@@ -237,17 +226,17 @@ def reviewSurvey(surveyName):
 	else:
 		#this takes in all the questions associated with survey so far (assuming these are mandatory)
 		#make sure that each survey is only filled out once by any staff
-		thisSurvey = reader.getSurvey(surveyName)
+		thisSurvey = Survey.getSurvey(surveyName)
 
 		questionlist = thisSurvey.questions
-		optionallist = reader.getOptionalQuestions()
+		optionallist = Question.getOptionalQuestions()
 
 		if request.method == "POST":
 			for v in request.form:
-				thisQuestion = reader.getQuestion(v)
+				thisQuestion = Question.getQuestion(v)
 				if thisQuestion != None:
-					reader.addQuestion(thisSurvey, thisQuestion)
-			reader.setStage(thisSurvey, 1)
+					Survey.addQuestion(thisSurvey, thisQuestion)
+			Survey.setStage(thisSurvey, 1)
 			return redirect(url_for('finishedReview'))
 	          
 		return render_template('reviewSurvey.html', manqlist = questionlist, opqlist = optionallist)
@@ -276,8 +265,8 @@ def studentdashboard():
 	else:
 		# global metricsViewable
 		global currentuser
-		surveyclosed = reader.getMyClosedSurveys(currentuser)
-		tobeanswered = reader.getMyLiveSurveys(currentuser)
+		surveyclosed = Survey.getMyClosedSurveys(currentuser)
+		tobeanswered = Survey.getMyLiveSurveys(currentuser)
 		#print(tobeanswered)
 		return render_template('studentDashboard.html', sanswered = tobeanswered, sclosed = surveyclosed)
 	
@@ -289,10 +278,10 @@ def survey(surveyName):
 		error = "Invalid Permissions. Please log in and try again."
 		return render_template('login.html', error = error)
 	else:
-		thisSurvey = reader.getSurvey(surveyName)
-		questionlist = thisSurvey.questions
+		thisSurvey = Survey.getSurvey(surveyName)
+		questionlist = Survey.getQuestionsInSurvey(thisSurvey)
 		print('allQuestions in survey page', questionlist)
-		manquestions = reader.getMandatorySurveyQuestions(thisSurvey)
+		manquestions = Survey.getMandatorySurveyQuestions(thisSurvey)
 
 		if request.method == 'POST':
 			#for each question object
@@ -300,23 +289,24 @@ def survey(surveyName):
 				print('question',str(v))
 				print('ans',request.form[v])
 				
-				thisQuestion = reader.getQuestion(str(v))
+				thisQuestion = Question.getQuestion(str(v))
 				if request.form[v] != "":
 					if thisQuestion in manquestions:
 						manquestions.remove(thisQuestion)
 
 				global currentuser
-				thisResponse = reader.addNewResponse(str(request.form[v]), thisQuestion.qid, thisSurvey, currentuser)
+				thisResponse = Response.addNewResponse(str(request.form[v]), thisQuestion.qid, thisSurvey, currentuser)
 				print(thisResponse.string)
-				thisQuestion.responses.append(thisResponse)
+				Question.addResponseToQuestion(thisQuestion, thisResponse)
+				
 
 			print(len(manquestions))
 			if len(manquestions):
 				message = "ERROR: Please enter a response to all mandatory questions"
-				reader.removeNullResponses(thisSurvey)
-				manquestions = reader.getMandatorySurveyQuestions(thisSurvey)
+				Response.removeResponsesToSurvey(thisSurvey)
+				manquestions = Survey.getMandatorySurveyQuestions(thisSurvey)
 				print("reloaded manquestions", manquestions)
-				questionlist = thisSurvey.questions
+				questionlist = Survey.getQuestionsInSurvey(thisSurvey)
 				return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 
 			
@@ -346,8 +336,8 @@ def metrics(surveyName):
 		# Information taken from https://plot.ly/python/bar-charts/
 		message = ""
 		global currentuser
-		resplist = reader.getMetrics(currentuser, surveyName)
-		sid = reader.getSurvey(surveyName).sid
+		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
+		sid = Survey.getSurvey(surveyName).sid
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
@@ -361,7 +351,7 @@ def metrics(surveyName):
 				qid_list.append(qid)
 		
 		for qid in qid_list:
-			question = reader.getQuestionFromId(qid)
+			question = Question.getQuestionFromId(qid)
 			if question.isMCQ:
 				# add MCQ info to plot format
 				y = [0, 0, 0, 0, 0]
@@ -403,12 +393,12 @@ def studentMetrics(surveyName):
 		# Information taken from https://plot.ly/python/bar-charts/
 		message = ""
 		global currentuser
-		resplist = reader.getMetrics(currentuser, surveyName)
-		sid = reader.getSurvey(surveyName).sid
+		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
+		sid = Survey.getSurvey(surveyName).sid
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
-		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
 			qid = response.q_id
@@ -418,7 +408,7 @@ def studentMetrics(surveyName):
 				qid_list.append(qid)
 		
 		for qid in qid_list:
-			question = reader.getQuestionFromId(qid)
+			question = Question.getQuestionFromId(qid)
 			if question.isMCQ:
 				# add MCQ info to plot format
 				y = [0, 0, 0, 0, 0]

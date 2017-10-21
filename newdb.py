@@ -24,6 +24,9 @@ class Users(Base):
     enrolment = relationship("Courses", secondary = users_courses, back_populates='users')
     response = relationship("Responses", back_populates='user')
 
+    def isValidUser(self, username, password):
+        return session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
+
     def __repr__(self):
         return "<User(zid='%s', password='%s', permission='%s')>" % (self.zid, self.password, self.permission)
 
@@ -36,110 +39,6 @@ class Courses(Base):
     users = relationship("Users", secondary='users_courses', back_populates="enrolment")
     survey = relationship("Surveys", back_populates="coursename")
 
-    def __repr__(self):
-        return "<Courses(coursename='%s')>" % (self.coursename)
-
-
-
-
-surveys_questions = Table('surveys_questions', Base.metadata,
-							Column('qid', Integer, ForeignKey('QUESTIONS.qid'), primary_key=True),
-							Column('sid', Integer, ForeignKey('SURVEYS.sid'), primary_key=True)
-							)
-
-class Surveys(Base):
-
-    __tablename__ = 'SURVEYS'
-    sid = Column(Integer, primary_key=True)
-    course = Column(String, ForeignKey(Courses.coursename))
-    stage = Column(Integer) #stage 0 = to be reviewed, stage 1 = live, stage 2 = closed
-
-    coursename = relationship("Courses", back_populates="survey")
-    questions = relationship("Questions", secondary='surveys_questions', back_populates='survey')
-    responses = relationship("Responses", back_populates="survey")
-
-    def __repr__(self):
-        return "<Survey(sid='%s', course='%s', stage='%s')>" % (self.sid, self.course, self.stage)
-
-
-
-class Questions(Base):
-    
-    __tablename__ = 'QUESTIONS'
-    qid = Column(Integer, primary_key=True)
-    string = Column(String)
-    isMCQ = Column(Integer)	# 0 = text response, 1 = MCQ
-    isMan = Column(Integer) #1 = Mandatory, 0 = optional
-    survey = relationship('Surveys', secondary='surveys_questions', back_populates='questions')
-    responses = relationship('Responses', back_populates='question')
-
-    def __repr__(self):
-        return "<Questions(qid='%s', string='%s', isMCQ='%s', isMan='%s')>" % (self.qid,
-                                                     self.string, self.isMCQ, self.isMan)
-
-
-class Responses(Base):
-
-    __tablename__ = 'RESPONSES'
-    rid = Column(Integer, primary_key=True)
-    string = Column(String)
-    u_id = Column(Integer, ForeignKey('USERS.zid'))
-    q_id = Column(Integer, ForeignKey('QUESTIONS.qid'))
-    s_id = Column(Integer, ForeignKey('SURVEYS.sid'))
-
-    user = relationship("Users", back_populates='response') #access via Responses.user or User.responses
-    question = relationship("Questions", back_populates='responses')
-    survey = relationship("Surveys", back_populates="responses")
-
-    def __repr__(self):
-        return "<Responses(rid='%s', string='%s', u_id='%s', q_id='%s', s_id='%s')>" % (self.rid,
-                                                     self.string, self.u_id, self.q_id, self.s_id)
-
-Base.metadata.create_all(engine)
-
-class Controller(object):
-    def isValidUser(self, username, password):
-        return session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
-
-#Questions
-    def addNewQuestion(self, question, entrytype, questiontype):
-        question = Questions(string = str(question), isMCQ = entrytype, isMan = questiontype)
-        session.add(question)
-        session.commit()
-
-    def getAllQuestions(self):
-        qlist = []
-        for question in session.query(Questions).all():
-            qlist.append(question)
-        return qlist
-
-    def getMandatoryQuestions(self):
-        mqlist = []
-        for question in session.query(Questions).filter_by(isMan = 1).all():
-            mqlist.append(question)
-        return mqlist
-
-    def getOptionalQuestions(self):
-        oqlist = []
-        for question in session.query(Questions).filter_by(isMan = 0).all():
-            oqlist.append(question)
-        return oqlist
-
-    def getQuestion(self, qstring):
-        return session.query(Questions).filter_by(string=qstring).one_or_none()
-
-    def addQuestion(self, thissurvey, thisquestion):
-        thissurvey.questions.append(thisquestion)
-        session.commit()
-
-    def removeQuestion(self, questionid):
-        session.query(Questions).filter_by(qid = questionid).delete(synchronize_session=False)
-        session.commit()
-
-    def getQuestionFromId(self, qid):
-        return session.query(Questions).filter_by(qid=qid).one()
-
-#Courses
     def getCourses(self, semester):
         courses = []
         for course in session.query(Courses).all():
@@ -165,12 +64,38 @@ class Controller(object):
             courses[sem] = self.getCourses(sem)
         return courses
 
-#Surveys
+
+    def __repr__(self):
+        return "<Courses(coursename='%s')>" % (self.coursename)
+
+
+
+
+surveys_questions = Table('surveys_questions', Base.metadata,
+							Column('qid', Integer, ForeignKey('QUESTIONS.qid'), primary_key=True),
+							Column('sid', Integer, ForeignKey('SURVEYS.sid'), primary_key=True)
+							)
+
+class Surveys(Base):
+
+    __tablename__ = 'SURVEYS'
+    sid = Column(Integer, primary_key=True)
+    course = Column(String, ForeignKey(Courses.coursename))
+    stage = Column(Integer) #stage 0 = to be reviewed, stage 1 = live, stage 2 = closed
+
+    coursename = relationship("Courses", back_populates="survey")
+    questions = relationship("Questions", secondary='surveys_questions', back_populates='survey')
+    responses = relationship("Responses", back_populates="survey")
+
     def addNewSurvey(self, surveyname):
         thissurvey = Surveys(course = str(surveyname), stage = 0)
         session.add(thissurvey)
         session.commit()
         return thissurvey
+
+    def addQuestion(self, thissurvey, thisquestion):
+        thissurvey.questions.append(thisquestion)
+        session.commit()
 
     def getSurvey(self, coursename):
         return session.query(Surveys).filter_by(course = coursename).one_or_none()
@@ -232,6 +157,9 @@ class Controller(object):
         print('final survey', finalsurveys)
         return finalsurveys
 
+    def getQuestionsInSurvey(self, thisSurvey):
+        return thisSurvey.questions
+
     def setStage(self, survey, Stage):
         survey.stage = Stage
         session.commit()
@@ -240,18 +168,7 @@ class Controller(object):
         session.query(Surveys).filter_by(sid=survey).delete(synchronize_session=False)
         session.commit()
 
-#Responses
-    def addNewResponse(self, answer, questionid, survey, user):
-        response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
-        session.add(response)
-        session.commit()
-        return response
-
-    def removeNullResponses(self, survey):
-        session.query(Responses).filter_by(s_id = survey.sid).delete(synchronize_session=False)
-        session.commit()
-
-    def getMetrics(self, currentuser, coursename):
+    def getSurveyMetrics(self, currentuser, coursename):
         thisSurvey = self.getSurvey(coursename)
         closedresponse = []
         liveresponse = []
@@ -266,23 +183,90 @@ class Controller(object):
         print('response', allresponses)
         return allresponses
 
+    def __repr__(self):
+        return "<Survey(sid='%s', course='%s', stage='%s')>" % (self.sid, self.course, self.stage)
 
 
 
-# user = Controller();
-# mandar = user.isValidUser(50, 'staff670')
-# print(mandar, mandar.permission)
-# course = Courses(coursename ='COMP1531')
-# mandar.enrolment.append(course)
+class Questions(Base):
+    
+    __tablename__ = 'QUESTIONS'
+    qid = Column(Integer, primary_key=True)
+    string = Column(String)
+    isMCQ = Column(Integer)	# 0 = text response, 1 = MCQ
+    isMan = Column(Integer) #1 = Mandatory, 0 = optional
+    survey = relationship('Surveys', secondary='surveys_questions', back_populates='questions')
+    responses = relationship('Responses', back_populates='question')
 
-# if not session.query(Users).filter_by(zid='5060517').one():
-#     print('adding name')
-#     session.add(mandar)
+    def addNewQuestion(self, question, entrytype, questiontype):
+        question = Questions(string = str(question), isMCQ = entrytype, isMan = questiontype)
+        session.add(question)
+        session.commit()
 
-# if not session.query(Courses).filter_by(coursename='COMP1531').one():
-#     print('adding course')
-#     session.add(course)
-# #session.add(course)
-# session.commit()
-# print(mandar)
-# print(mandar.enrolment)
+    def addResponseToQuestion(self, thisquestion, thisresponse):
+        thisquestion.responses.append(thisresponse)
+        session.commit()
+
+    def getAllQuestions(self):
+        qlist = []
+        for question in session.query(Questions).all():
+            qlist.append(question)
+        return qlist
+
+    def getMandatoryQuestions(self):
+        mqlist = []
+        for question in session.query(Questions).filter_by(isMan = 1).all():
+            mqlist.append(question)
+        return mqlist
+
+    def getOptionalQuestions(self):
+        oqlist = []
+        for question in session.query(Questions).filter_by(isMan = 0).all():
+            oqlist.append(question)
+        return oqlist
+
+    def getQuestion(self, qstring):
+        return session.query(Questions).filter_by(string=qstring).one_or_none()
+
+
+    def removeQuestion(self, questionid):
+        session.query(Questions).filter_by(qid = questionid).delete(synchronize_session=False)
+        session.commit()
+
+    def getQuestionFromId(self, qid):
+        return session.query(Questions).filter_by(qid=qid).one()
+
+    def __repr__(self):
+        return "<Questions(qid='%s', string='%s', isMCQ='%s', isMan='%s')>" % (self.qid,
+                                                     self.string, self.isMCQ, self.isMan)
+
+
+class Responses(Base):
+
+    __tablename__ = 'RESPONSES'
+    rid = Column(Integer, primary_key=True)
+    string = Column(String)
+    u_id = Column(Integer, ForeignKey('USERS.zid'))
+    q_id = Column(Integer, ForeignKey('QUESTIONS.qid'))
+    s_id = Column(Integer, ForeignKey('SURVEYS.sid'))
+
+    user = relationship("Users", back_populates='response') #access via Responses.user or User.responses
+    question = relationship("Questions", back_populates='responses')
+    survey = relationship("Surveys", back_populates="responses")
+
+    def addNewResponse(self, answer, questionid, survey, user):
+        response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
+        session.add(response)
+        session.commit()
+        return response
+
+    def removeResponsesToSurvey(self, survey):
+        session.query(Responses).filter_by(s_id = survey.sid).delete(synchronize_session=False)
+        session.commit()
+
+
+    def __repr__(self):
+        return "<Responses(rid='%s', string='%s', u_id='%s', q_id='%s', s_id='%s')>" % (self.rid,
+                                                     self.string, self.u_id, self.q_id, self.s_id)
+
+Base.metadata.create_all(engine)

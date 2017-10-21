@@ -48,12 +48,5 @@ admin = Users(zid = 'admin', password = 'admin', permission = 0)
 session.add(admin)
 
 session.commit()
+print("Database built.")
 session.close()
-
-#     def query_user(self, user_id):
-#         session = self.DBSession()
-#         user = session.query(Users).filter(Users.zid == user_id).one()
-#         session.close()
-#         if user is not None:
-#             return user
-#         else: return None
