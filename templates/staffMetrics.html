@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<title>Survey Metrics</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style>	body {font-family: "Lato", sans-serif} </style>
+
+<body>
+<!-- Staff Navbar -->
+    {% include 'staffNav.html' %}
+<!-- End Navbar -->
+	
+<!-- Page content -->
+
+	<form action="" method="post">
+	<h1>All Responses</h1>
+		
+	{% if not plots and not textQuestions%}		
+		<p><font color="red" class="error">No responses currently exists.</font></p>
+	{% endif %}
+	
+   	{% if message %}
+   		{{ message }}
+   	{% else %}
+   		<h2>MCQ questions</h2>
+   		
+   		{% for plot in plots %}
+   			<h3>{{ loop.index }}.{{ plot[0] }}</h3>
+   			{% include plot[1] %}
+   		{% endfor %}
+   		<h2>Text Questions</h2>
+   		{% for question in textQuestions %}
+   			<h3>{{ loop.index }}.{{ question[0] }}</h3>
+   			{% for text in question[1] %}
+   			   {{ text }}<br>
+   			{% endfor %}
+  		{% endfor %}
+   	{% endif %}
+
+	</form>
+
+</body>
+</html>
