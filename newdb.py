@@ -268,5 +268,10 @@ class Responses(Base):
     def __repr__(self):
         return "<Responses(rid='%s', string='%s', u_id='%s', q_id='%s', s_id='%s')>" % (self.rid,
                                                      self.string, self.u_id, self.q_id, self.s_id)
+                                                     
+
+
+
+
 
 Base.metadata.create_all(engine)

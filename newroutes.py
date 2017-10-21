@@ -8,10 +8,41 @@ import plotly.graph_objs as go
 global currentuser
 global auth
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 
 @app.route('/', methods=["GET","POST"])
 def login():
 	error = None
+	global auth
+	auth = -1
+	if request.method == 'POST':
+		#check for user against database
+		global currentuser
+		currentuser = User.isValidUser(request.form['zID'], request.form['password'])
+
+		if currentuser == None:
+			error = 'Invalid Credentials. Please try again.'
+		else:
+			if currentuser.permission == 0:
+				auth = 0
+				return redirect(url_for('admindashboard'))
+				
+			elif currentuser.permission == 1:
+				auth = 1
+				return redirect(url_for('staffdashboard'))
+				
+			else:
+				auth = 2
+				return redirect(url_for('studentdashboard'))
+			
+	return render_template('login.html', error=error)
+	
+@app.route('/login/error', methods=["GET","POST"])
+def login_error():
+	error = 'Invalid Credentials. Please try again.'
 	global auth
 	auth = -1
 	if request.method == 'POST':
@@ -43,7 +74,7 @@ def admindashboard():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 
 		questionlist = Question.getAllQuestions()
@@ -63,7 +94,7 @@ def addquestions():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    submitted = None;
 	    if request.method == 'POST':
@@ -93,7 +124,7 @@ def addedquestions():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    return render_template('addedQuestion.html')
     
@@ -105,7 +136,7 @@ def questionlist():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		mandatoryq = []
 		optionalq = []
@@ -124,7 +155,7 @@ def newsurvey():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:	
 		courses_list = Course.getCoursesList()
 		semesters = Course.getSemesters()
@@ -138,7 +169,7 @@ def viewActiveSurveys():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 	    #select surveys to close
 	    if request.method == 'POST':
@@ -157,7 +188,7 @@ def courseObject(coursename, semestername):
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		if request.method == "POST":
 			surveyname = coursename+semestername
@@ -184,7 +215,7 @@ def questionselected():
 	global auth
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		if request.method == "POST":
 			name = request.form["bt"]
@@ -207,7 +238,7 @@ def staffdashboard():
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		global currentuser
 		tobereviewed = Survey.getMyReviewSurveys(currentuser)
@@ -222,7 +253,7 @@ def reviewSurvey(surveyName):
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		#this takes in all the questions associated with survey so far (assuming these are mandatory)
 		#make sure that each survey is only filled out once by any staff
@@ -247,7 +278,7 @@ def finishedReview():
 	global auth
 	if auth != 1:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		message = "Survey was sucessfully reviewed." #Make this display if the survey was sucessful or not 
 		return render_template('staffSurveySubmitted.html', message = message)
@@ -261,7 +292,7 @@ def studentdashboard():
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		# global metricsViewable
 		global currentuser
@@ -276,7 +307,7 @@ def survey(surveyName):
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		thisSurvey = Survey.getSurvey(surveyName)
 		questionlist = Survey.getQuestionsInSurvey(thisSurvey)
@@ -320,7 +351,7 @@ def studentSurveySubmitted():
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		return render_template('surveySubmitted.html')
 	
@@ -331,7 +362,7 @@ def metrics(surveyName):
 	global auth
 	if auth != 0 :
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:
 		# Information taken from https://plot.ly/python/bar-charts/
 		message = ""
@@ -381,13 +412,68 @@ def metrics(surveyName):
 		
 		return render_template('metrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
 
+#VIEW METRICS
+@app.route('/staff/metrics/<surveyName>')
+def staffMetrics(surveyName):
+	global auth
+	if auth != 1 :
+		error = "Invalid Permissions. Please log in and try again."
+		return redirect(url_for('login_error'))
+	else:
+		# Information taken from https://plot.ly/python/bar-charts/
+		message = ""
+		global currentuser
+		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
+		sid = Survey.getSurvey(surveyName).sid
+		qid_list = []
+		plots = [] #this will be a list of graphs
+		textQuestions = [] #this will hold question and responses
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		
+		for response in resplist:
+			qid = response.q_id
+			try: #check if in list
+				index = qid_list.index(qid)
+			except: #if not in list 
+				qid_list.append(qid)
+		
+		for qid in qid_list:
+			question = Question.getQuestionFromId(qid)
+			if question.isMCQ:
+				# add MCQ info to plot format
+				y = [0, 0, 0, 0, 0]
+				for response in resplist:
+					if response.q_id == qid:
+						y[int(response.string)] = y[int(response.string)] + 1
+				
+				print(question.string)
+				print(x)
+				print(y)
+				
+				#data = []
+				data = [go.Bar(x=x, y=y)]
+				extension = plotly.offline.plot(data, filename=('templates/basic-bar-qid='+str(qid))+'.html')
+				extension = extension.split('/')[-1]
+				
+				#plots.append([question.string, py.iplot(data, filename='basic bar')])
+				plots.append([question.string, extension])
+				
+			else : #text responses
+				answerlist = []
+				for response in resplist:
+					if response.q_id == qid:
+						answerlist.append(response.string)
+				textQuestions.append([question.string , answerlist])
+				
+		
+		return render_template('staffMetrics.html',  plots = plots, textQuestions = textQuestions, message = message)
 
 @app.route('/student/metrics/<surveyName>')
 def studentMetrics(surveyName):
 	global auth
 	if auth != 2:
 		error = "Invalid Permissions. Please log in and try again."
-		return render_template('login.html', error = error)
+		return redirect(url_for('login_error'))
 	else:	
 		global currentuser
 		# Information taken from https://plot.ly/python/bar-charts/
