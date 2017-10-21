@@ -14,7 +14,7 @@
   <h2>{{ surveyName }}</h2><br>
   
   {% if message %}
-    {{ message }}
+    <p><font color="red" class="error">{{ message }}.</font></p>
   {% endif %}
   
   
@@ -24,7 +24,7 @@
       {% for q in questions %}
         <h3>
         {{ q.string }}
-        {% if q.isMan == 0%}
+        {% if q.isMan == 0 %}
           (Optional Question)
         {% endif %}
         </h3>
