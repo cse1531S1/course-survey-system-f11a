@@ -408,6 +408,61 @@ def metrics(surveyName):
 		
 		return render_template('metrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
 
+#VIEW METRICS
+@app.route('/staff/metrics/<surveyName>')
+def staffMetrics(surveyName):
+	global auth
+	if auth != 1 :
+		error = "Invalid Permissions. Please log in and try again."
+		return redirect(url_for('login_error'))
+	else:
+		# Information taken from https://plot.ly/python/bar-charts/
+		message = ""
+		global currentuser
+		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
+		sid = Survey.getSurvey(surveyName).sid
+		qid_list = []
+		plots = [] #this will be a list of graphs
+		textQuestions = [] #this will hold question and responses
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		
+		for response in resplist:
+			qid = response.q_id
+			try: #check if in list
+				index = qid_list.index(qid)
+			except: #if not in list 
+				qid_list.append(qid)
+		
+		for qid in qid_list:
+			question = Question.getQuestionFromId(qid)
+			if question.isMCQ:
+				# add MCQ info to plot format
+				y = [0, 0, 0, 0, 0]
+				for response in resplist:
+					if response.q_id == qid:
+						y[int(response.string)] = y[int(response.string)] + 1
+				
+				print(question.string)
+				print(x)
+				print(y)
+				
+				#data = []
+				data = [go.Bar(x=x, y=y)]
+				extension = plotly.offline.plot(data, filename=('templates/basic-bar-qid='+str(qid))+'.html')
+				extension = extension.split('/')[-1]
+				
+				#plots.append([question.string, py.iplot(data, filename='basic bar')])
+				plots.append([question.string, extension])
+				
+			else : #text responses
+				answerlist = []
+				for response in resplist:
+					if response.q_id == qid:
+						answerlist.append(response.string)
+				textQuestions.append([question.string , answerlist])
+				
+		
+		return render_template('staffMetrics.html',  plots = plots, textQuestions = textQuestions, message = message)
 
 @app.route('/student/metrics/<surveyName>')
 def studentMetrics(surveyName):

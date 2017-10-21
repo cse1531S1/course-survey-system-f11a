@@ -19,7 +19,7 @@
     {% if surveyList %}
 	    {% for survey in surveyList %}
    		    {{ survey.course }}
-	        <button type="submit" value="{{survey.course}}" name = "submit">Remove</button><br>
+	        <button type="submit" value="{{survey.course}}" name = "submit">Close</button><br>
 	    {% endfor %}
 	{% else %}
 	    No current live surveys.
