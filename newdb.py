@@ -27,6 +27,9 @@ class Users(Base):
     def isValidUser(self, username, password):
         return session.query(Users).filter_by(zid=str(username), password=str(password)).one_or_none()
 
+    def getpermission(self):
+        return self.permission
+
     def __repr__(self):
         return "<User(zid='%s', password='%s', permission='%s')>" % (self.zid, self.password, self.permission)
 
@@ -99,6 +102,10 @@ class Surveys(Base):
 
     def getSurvey(self, coursename):
         return session.query(Surveys).filter_by(course = coursename).one_or_none()
+
+    def getSurveyID(self, coursename):
+        survey = session.query(Surveys).filter_by(course = coursename).one_or_none()
+        return survey.sid
 
     def getMandatorySurveyQuestions(self, survey):
         manquestionlist = []
@@ -227,6 +234,11 @@ class Questions(Base):
     def getQuestion(self, qstring):
         return session.query(Questions).filter_by(string=qstring).one_or_none()
 
+    def getQuestionString(self):
+        return self.string
+
+    def getMCQ(self):
+        return self.isMCQ
 
     def removeQuestion(self, questionid):
         session.query(Questions).filter_by(qid = questionid).delete(synchronize_session=False)
@@ -262,6 +274,12 @@ class Responses(Base):
     def removeResponsesToSurvey(self, survey):
         session.query(Responses).filter_by(s_id = survey.sid).delete(synchronize_session=False)
         session.commit()
+
+    def getResponseQID(self):
+        return self.q_id
+
+    def getResponseString(self):
+        return self.string
 
 
     def __repr__(self):

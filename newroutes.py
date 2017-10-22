@@ -26,11 +26,11 @@ def login():
 		if currentuser == None:
 			error = 'Invalid Credentials. Please try again.'
 		else:
-			if currentuser.permission == 0:
+			if currentuser.getpermission() == 0:
 				auth = 0
 				return redirect(url_for('admindashboard'))
 				
-			elif currentuser.permission == 1:
+			elif currentuser.getpermission() == 1:
 				auth = 1
 				return redirect(url_for('staffdashboard'))
 				
@@ -53,11 +53,11 @@ def login_error():
 		if currentuser == None:
 			error = 'Invalid Credentials. Please try again.'
 		else:
-			if currentuser.permission == 0:
+			if currentuser.getpermission() == 0:
 				auth = 0
 				return redirect(url_for('admindashboard'))
 				
-			elif currentuser.permission == 1:
+			elif currentuser.getpermission() == 1:
 				auth = 1
 				return redirect(url_for('staffdashboard'))
 				
@@ -259,7 +259,7 @@ def reviewSurvey(surveyName):
 		#make sure that each survey is only filled out once by any staff
 		thisSurvey = Survey.getSurvey(surveyName)
 
-		questionlist = thisSurvey.questions
+		questionlist = Survey.getQuestionsInSurvey(thisSurvey)
 		optionallist = Question.getOptionalQuestions()
 
 		if request.method == "POST":
@@ -327,7 +327,6 @@ def survey(surveyName):
 
 				global currentuser
 				thisResponse = Response.addNewResponse(str(request.form[v]), thisQuestion.qid, thisSurvey, currentuser)
-				print(thisResponse.string)
 				Question.addResponseToQuestion(thisQuestion, thisResponse)
 				
 
@@ -336,7 +335,6 @@ def survey(surveyName):
 				message = "ERROR: Please enter a response to all mandatory questions"
 				Response.removeResponsesToSurvey(thisSurvey)
 				manquestions = Survey.getMandatorySurveyQuestions(thisSurvey)
-				print("reloaded manquestions", manquestions)
 				questionlist = Survey.getQuestionsInSurvey(thisSurvey)
 				return render_template('survey.html', questions = questionlist, surveyName = surveyName, message = message)
 
@@ -368,14 +366,14 @@ def metrics(surveyName):
 		message = ""
 		global currentuser
 		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
-		sid = Survey.getSurvey(surveyName).sid
+		sid = Survey.getSurveyID(surveyName)
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
 		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
-			qid = response.q_id
+			qid = response.getResponseQID()
 			try: #check if in list
 				index = qid_list.index(qid)
 			except: #if not in list 
@@ -387,10 +385,10 @@ def metrics(surveyName):
 				# add MCQ info to plot format
 				y = [0, 0, 0, 0, 0]
 				for response in resplist:
-					if response.q_id == qid:
-						y[int(response.string)] = y[int(response.string)] + 1
+					if response.getResponseQID() == qid:
+						y[int(response.getResponseString())] = y[int(response.getResponseString())] + 1
 				
-				print(question.string)
+				print(question.getQuestionString())
 				print(x)
 				print(y)
 				
@@ -400,14 +398,14 @@ def metrics(surveyName):
 				extension = extension.split('/')[-1]
 				
 				#plots.append([question.string, py.iplot(data, filename='basic bar')])
-				plots.append([question.string, extension])
+				plots.append([question.getQuestionString(), extension])
 				
 			else : #text responses
 				answerlist = []
 				for response in resplist:
-					if response.q_id == qid:
-						answerlist.append(response.string)
-				textQuestions.append([question.string , answerlist])
+					if response.getResponseQID() == qid:
+						answerlist.append(response.getResponseString())
+				textQuestions.append([question.getQuestionString() , answerlist])
 				
 		
 		return render_template('metrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
@@ -424,14 +422,14 @@ def staffMetrics(surveyName):
 		message = ""
 		global currentuser
 		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
-		sid = Survey.getSurvey(surveyName).sid
+		sid = Survey.getSurveyID(surveyName)
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
 		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
-			qid = response.q_id
+			qid = response.getResponseQID()
 			try: #check if in list
 				index = qid_list.index(qid)
 			except: #if not in list 
@@ -439,14 +437,14 @@ def staffMetrics(surveyName):
 		
 		for qid in qid_list:
 			question = Question.getQuestionFromId(qid)
-			if question.isMCQ:
+			if question.getMCQ():
 				# add MCQ info to plot format
 				y = [0, 0, 0, 0, 0]
 				for response in resplist:
-					if response.q_id == qid:
-						y[int(response.string)] = y[int(response.string)] + 1
+					if response.getResponseQID() == qid:
+						y[int(response.getResponseString())] = y[int(response.getResponseString())] + 1
 				
-				print(question.string)
+				print(question.getQuestionString())
 				print(x)
 				print(y)
 				
@@ -456,14 +454,14 @@ def staffMetrics(surveyName):
 				extension = extension.split('/')[-1]
 				
 				#plots.append([question.string, py.iplot(data, filename='basic bar')])
-				plots.append([question.string, extension])
+				plots.append([question.getQuestionString(), extension])
 				
 			else : #text responses
 				answerlist = []
 				for response in resplist:
-					if response.q_id == qid:
-						answerlist.append(response.string)
-				textQuestions.append([question.string , answerlist])
+					if response.getResponseQID() == qid:
+						answerlist.append(response.getResponseString())
+				textQuestions.append([question.getQuestionString() , answerlist])
 				
 		
 		return render_template('staffMetrics.html',  plots = plots, textQuestions = textQuestions, message = message)
@@ -480,14 +478,14 @@ def studentMetrics(surveyName):
 		message = ""
 		global currentuser
 		resplist = Survey.getSurveyMetrics(currentuser, surveyName)
-		sid = Survey.getSurvey(surveyName).sid
+		sid = Survey.getSurveyID(surveyName)
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
 		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
-			qid = response.q_id
+			qid = response.getResponseQID()
 			try: #check if in list
 				index = qid_list.index(qid)
 			except: #if not in list 
@@ -495,14 +493,14 @@ def studentMetrics(surveyName):
 		
 		for qid in qid_list:
 			question = Question.getQuestionFromId(qid)
-			if question.isMCQ:
+			if question.getMCQ():
 				# add MCQ info to plot format
 				y = [0, 0, 0, 0, 0]
 				for response in resplist:
-					if response.q_id == qid:
-						y[int(response.string)] = y[int(response.string)] + 1
+					if response.getResponseQID() == qid:
+						y[int(response.getResponseString())] = y[int(response.getResponseString())] + 1
 				
-				print(question.string)
+				print(question.getQuestionString())
 				print(x)
 				print(y)
 				
@@ -512,68 +510,14 @@ def studentMetrics(surveyName):
 				extension = extension.split('/')[-1]
 				
 				#plots.append([question.string, py.iplot(data, filename='basic bar')])
-				plots.append([question.string, extension])
+				plots.append([question.getQuestionString(), extension])
 				
 			else : #text responses
 				answerlist = []
 				for response in resplist:
 					if response.q_id == qid:
-						answerlist.append(response.string)
-				textQuestions.append([question.string , answerlist])
+						answerlist.append(response.getResponseString())
+				textQuestions.append([question.getQuestionString() , answerlist])
 				
 		
-		return render_template('studentmetrics.html',  plots = plots, textQuestions = textQuestions, message = message)	
-
-		
-		
-
-# #--------------------------functions for constructing courses --------------------------------------
-# #---------------------------------------------------------------------------------------------------
-# def inList(list_current, to_find):
-#    # Takes in a list and a item
-#    # Determines if the item is in the list
-#     found = False
-#     for item in list_current:
-#         if(item == to_find):
-#             found = True
-#             return found #early exit
-#     return found
-         
-         
-# def get_list_of_courses():
-#     # Get a list of ordered semester and creates a dictionary so that
-#     # each semester has a list of it's associated courses
-#     semesters = get_sems()
-#     courses = {}
-#     for sem in semesters:
-#         courses[sem] = get_courses(sem)
-#     return courses
-    
-
-# def get_sems():
-#     # This function reads from the courses csv and gets an ordered list of unique semesters
-#     semesters = []
-#     found = True
-#     while(found): #while a unique course has not been added
-#         found = False
-#         with open('courses.csv','r') as csv_in: #open the csv
-#             reader = csv.reader(csv_in)
-#             next_min = "zzzzz"
-#             for row in reader: #for each row in the csv
-#                  if(row != [] and row[1] < next_min): #if the current semester is less than the minimum
-#                     if(inList(semesters, row[1]) == False): #check not already in 
-#                         next_min = row[1]
-#                         found = True
-#             if(found):
-#                 semesters.append(next_min)
-#     return semesters
-    
-# def get_courses(semester):
-#     # This function takes in a semester and returns a list of its courses
-#     courses = []
-#     with open('courses.csv','r') as csv_in: #open the csv
-#         reader = csv.reader(csv_in)
-#         for row in reader: #for each row in the csv
-#             if(row != [] and row[1] == semester):
-#                 courses.append(row[0])
-#     return courses
+		return render_template('studentmetrics.html',  plots = plots, textQuestions = textQuestions, message = message)
