@@ -372,7 +372,7 @@ def metrics(surveyName):
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
-		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
 			qid = response.q_id
@@ -428,7 +428,7 @@ def staffMetrics(surveyName):
 		qid_list = []
 		plots = [] #this will be a list of graphs
 		textQuestions = [] #this will hold question and responses
-		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strognly agree']
+		x = ['Strongly disagree', 'Disagree', 'Pass', 'Agree', 'Strongly agree']
 		
 		for response in resplist:
 			qid = response.q_id
