@@ -14,28 +14,31 @@
 <!-- Page content-->
 	<h1> Choose Questions</h1>
 	
-	
-    <h3>Please select the mandatory questions</h3>
-	{% if questions %}
-		<Form method="POST">
-		{% autoescape false %}
-			{% for q in questions %}
-				<p>
-				<input class = "w3-check" type="checkbox" name="{{q.string}}">
-				<label>{{q.string}}</label>
-			    {% if q.isMCQ %}
-	                (MCQ)
-	            {% else %}
-	                (TEXT)
-	            {% endif %}
-	            </p>
-			{% endfor %}
-			<button class=w3-button" type = "submit" name = "save">Save</button>      	
-      {% endautoescape %}
-      </Form>
-	{%else%}
-		No questions have been submitted -> 
-		<a href="/admin/addQuestion" class="w3-bar-item w3-button">Add New Question</a>	
+	{% if message %}
+		<h3>{{message}}</h3>
+	{% else %}
+		<h3>Please select the mandatory questions</h3>
+		{% if questions %}
+			<Form method="POST">
+			{% autoescape false %}
+				{% for q in questions %}
+					<p>
+					<input class = "w3-check" type="checkbox" name="{{q.string}}">
+					<label>{{q.string}}</label>
+				    {% if q.isMCQ %}
+		                (MCQ)
+		            {% else %}
+		                (TEXT)
+		            {% endif %}
+		            </p>
+				{% endfor %}
+				<button class=w3-button" type = "submit" name = "save">Save</button>      	
+		  {% endautoescape %}
+		  </Form>
+		{%else%}
+			No questions have been submitted -> 
+			<a href="/admin/addQuestion" class="w3-bar-item w3-button">Add New Question</a>	
+		{% endif %}
 	{% endif %}
 <!-- Page content -->
 </body>
