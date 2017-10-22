@@ -133,9 +133,12 @@ class Surveys(Base):
             #returns list of survey objects
 
     def getMyClosedSurveys(self, currentuser):
+        closedsurveys = []
         for subject in currentuser.enrolment:
             surveys = session.query(Surveys).filter_by(course=subject.coursename, stage=2).all()
-        return surveys
+            if surveys:
+                closedsurveys.append(surveys[0])
+        return closedsurveys
 
     def getMyLiveSurveys(self, currentuser):
         removeitem = False
@@ -162,10 +165,6 @@ class Surveys(Base):
 
     def setStage(self, survey, Stage):
         survey.stage = Stage
-        session.commit()
-
-    def deleteSurvey(self, survey):
-        session.query(Surveys).filter_by(sid=survey).delete(synchronize_session=False)
         session.commit()
 
     def getSurveyMetrics(self, currentuser, coursename):

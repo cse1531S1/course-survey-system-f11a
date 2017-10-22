@@ -186,15 +186,13 @@ def viewActiveSurveys():
 def courseObject(coursename, semestername):
 	#If they've submitted, then for each of these, instantiate a questions object, and a data object
 	global auth
+	surveyname = coursename+semestername
 	if auth != 0:
 		error = "Invalid Permissions. Please log in and try again."
 		return redirect(url_for('login_error'))
 	else:
+		message = ""
 		if request.method == "POST":
-			surveyname = coursename+semestername
-			if Survey.getSurvey(surveyname):
-				Survey.deleteSurvey(surveyname)
-				
 			thisSurvey = Survey.addNewSurvey(surveyname)
 			for v in request.form:
 				thisQuestion = Question.getQuestion(v)
@@ -205,8 +203,10 @@ def courseObject(coursename, semestername):
 		
 		#Else, get questionlist from pool, and display these onto the screen as checkboxes
 		else:
+			if Survey.getSurvey(surveyname):
+				message = "Survey already exists! Please select a different survey"
 			mandatoryQ = Question.getMandatoryQuestions()	
-			return render_template('choosequestions.html', questions = mandatoryQ)
+			return render_template('choosequestions.html', questions = mandatoryQ, message = message)
 
 
 #PAGE AFTER SELECTING QUESTIONS
