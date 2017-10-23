@@ -32,6 +32,26 @@ class TestQuestionInsertion(unittest.TestCase):
 		self.assertEqual(q.isMCQ, 0)
 		self.assertEqual(q.isMan, 0)
 
+	def test_add_empty_question(self):
+		with self.assertRaises(Exception):
+			s = self.surveys.addNewQuestion("","","")
+
+	def test_add_empty_response_to_question(self):
+		with self.assertRaises(Exception):
+			s = self.surveys.addResponseToQuestion("","")
+
+	def test_remove_empty_question(self):
+		exceptionCaught = False
+		try:
+			s = self.surveys.removeQuestion("")
+		except:
+			exceptionCaught = True
+		self.assertEqual(exceptionCaught, True)
+		#with self.assertRaises(Exception):
+		#	s = self.surveys.removeQuestion("")
+
+
+
 	def test_purity_of_mandatory_fetch(self):
 		qlist = self.questions.getMandatoryQuestions()
 		for q in qlist:
@@ -69,9 +89,19 @@ class TestSurveys(unittest.TestCase):
 		s = self.surveys.addNewSurvey("COMP490418S2")
 		self.assertNotEqual(s,None)
 		self.assertEqual(s.course,"COMP490418S2")
+
 	def test_add_empty_survey(self):
 		with self.assertRaises(Exception):
 			s = self.surveys.addNewSurvey("")
+	
+	def test_add_empty_question(self):
+		with self.assertRaises(Exception):
+			s = self.surveys.addNewQuestion("","","")
+
+	def test_empty_set_stage(self):
+		with self.assertRaises(Exception):
+			s = self.surveys.setStage("")
+
 	def test_add_question_to_survey(self):
 		s = self.surveys.addNewSurvey("COMP212117S2")
 		self.assertNotEqual(s,None)

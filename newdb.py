@@ -173,8 +173,6 @@ class Surveys(Base):
 		return thisSurvey.questions
 
 	def setStage(self, survey, Stage):
-		if not Stage:
-			raise Exception('InvalidInput')
 		survey.stage = Stage
 		session.commit()
 
@@ -209,7 +207,7 @@ class Questions(Base):
 	responses = relationship('Responses', back_populates='question')
 
 	def addNewQuestion(self, question, entrytype, questiontype):
-		if not question or not entryptype or not questiontype:
+		if not question:
 			raise Exception('InvalidInput')
  
 		question = Questions(string = str(question), isMCQ = entrytype, isMan = questiontype)
@@ -278,7 +276,7 @@ class Responses(Base):
 	survey = relationship("Surveys", back_populates="responses")
 
 	def addNewResponse(self, answer, questionid, survey, user):
-		if not answer or not questionid or not survey or not user:
+		if not survey or not user:
 			raise Exception('InvalidInput')
  
 		response = Responses(string = answer, q_id = questionid, s_id = survey.sid, u_id = user.zid)
