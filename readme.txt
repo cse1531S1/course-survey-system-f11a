@@ -28,10 +28,12 @@ Section 2
 Section 3
 	Note: The use of the testing suite will remove all data from the database. Please think carefully before running this script.
 	1. $python3 testcases.py
-	2. 
+	
+	Note: List of tests:
 		test_validity_with_false_user
 		test_validity_with_real_user
-		test_add_new_question
+		test_add_new_optional_question
+		test_add_new_mandatory_question
 		test_purity_of_mandatory_fetch
 		test_purity_of_optional_fetch
 		test_question_deletion
@@ -44,3 +46,9 @@ Section 3
 		test_purity_of_my_review_fetch
 		test_purity_of_my_live_fetch
 		test_purity_of_my_closed_fetch
+		test_add_empty_question
+		test_add_empty_response_to_question
+		test_remove_empty_question
+		test_add_empty_survey
+		test_add_empty_question
+		test_empty_set_stage

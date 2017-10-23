@@ -4,6 +4,8 @@ from newdb import *
 from sqlalchemy import exc, orm
 import subprocess
 
+
+#Test student enrolment
 class TestUserLogin(unittest.TestCase):
 
 	def setUp(self):
@@ -19,18 +21,28 @@ class TestUserLogin(unittest.TestCase):
 		self.assertEqual(user.password, "student563")
 		self.assertEqual(user.permission, 2)
 
+
+# create mandatory, optional questions
 class TestQuestionInsertion(unittest.TestCase):
 
 	def setUp(self):
 		self.questions = Questions()
 
-	def test_add_new_question(self):
+	def test_add_new_optional_question(self):
 		self.questions.addNewQuestion("Why is a duck?",0,0)
-		q = self.questions.getQuestionFromId(1)
+		q = self.questions.getQuestion("Why is a duck?")
 		self.assertNotEqual(q,None)
 		self.assertEqual(q.string, "Why is a duck?")
 		self.assertEqual(q.isMCQ, 0)
 		self.assertEqual(q.isMan, 0)
+
+	def test_add_new_mandatory_question(self):
+		self.questions.addNewQuestion("Why is a beagle?",1,1)
+		q = self.questions.getQuestion("Why is a beagle?")
+		self.assertNotEqual(q,None)
+		self.assertEqual(q.string, "Why is a beagle?")
+		self.assertEqual(q.isMCQ, 1)
+		self.assertEqual(q.isMan, 1)	
 
 	def test_add_empty_question(self):
 		with self.assertRaises(Exception):
@@ -40,6 +52,12 @@ class TestQuestionInsertion(unittest.TestCase):
 		with self.assertRaises(Exception):
 			s = self.surveys.addResponseToQuestion("","")
 
+# Delete questions as an admin
+class TestAdminQuestionDeletion(unittest.TestCase):
+
+	def setUp(self):
+		self.questions = Questions()
+
 	def test_remove_empty_question(self):
 		exceptionCaught = False
 		try:
@@ -47,10 +65,15 @@ class TestQuestionInsertion(unittest.TestCase):
 		except:
 			exceptionCaught = True
 		self.assertEqual(exceptionCaught, True)
-		#with self.assertRaises(Exception):
-		#	s = self.surveys.removeQuestion("")
 
 
+	def test_question_deletion(self):
+		self.questions.addNewQuestion("This should be deleted",1,1)
+		q = self.questions.getQuestion("This should be deleted")
+		self.assertNotEqual(q,None)	
+		self.questions.removeQuestion(q.qid)
+		q = self.questions.getQuestion("This should be deleted")
+		self.assertEqual(q,None)
 
 	def test_purity_of_mandatory_fetch(self):
 		qlist = self.questions.getMandatoryQuestions()
@@ -62,26 +85,11 @@ class TestQuestionInsertion(unittest.TestCase):
 		for q in qlist:
 			self.assertEqual(q.isMan, 0)
 
-	def test_question_deletion(self):
-		self.questions.addNewQuestion("This should be deleted",1,1)
-		q = self.questions.getQuestion("This should be deleted")
-		self.assertNotEqual(q,None)	
-		self.questions.removeQuestion(q.qid)
-		q = self.questions.getQuestion("This should be deleted")
-		self.assertEqual(q,None)
 
-class TestSurveys(unittest.TestCase):
+#Add a survey as an admin
+class TestAddSurvey(unittest.TestCase):
 
 	def setUp(self):
-		self.user = Users()
-		self.myStudentOne = self.user.isValidUser("161","student563")
-		self.myStaffOne = self.user.isValidUser("74","staff461")
-		self.myStudentTwo = self.user.isValidUser("125","student729")
-		self.myStaffTwo = self.user.isValidUser("50","staff670") #COMP493118S1
-		self.myStudentThree = self.user.isValidUser("114","student668")
-		self.myStaffThree = self.user.isValidUser("52","staff342")# COMP951717S2
-
-
 		self.surveys = Surveys()
 		self.questions = Questions()
 
@@ -111,6 +119,23 @@ class TestSurveys(unittest.TestCase):
 		self.surveys.addQuestion(s, q)
 		qlist = self.surveys.getQuestionsInSurvey(s)
 		self.assertNotEqual(qlist, None)
+
+
+# display questions for review
+class TestSurveyDisplay(unittest.TestCase):
+
+	def setUp(self):
+		self.user = Users()
+		self.myStudentOne = self.user.isValidUser("161","student563")
+		self.myStaffOne = self.user.isValidUser("74","staff461")
+		self.myStudentTwo = self.user.isValidUser("125","student729")
+		self.myStaffTwo = self.user.isValidUser("50","staff670") #COMP493118S1
+		self.myStudentThree = self.user.isValidUser("114","student668")
+		self.myStaffThree = self.user.isValidUser("52","staff342")# COMP951717S2
+
+
+		self.surveys = Surveys()
+		self.questions = Questions()
 
 	def test_purity_of_mandatory_fetch(self):
 		s = self.surveys.addNewSurvey("COMP490417S2")
