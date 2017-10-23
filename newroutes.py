@@ -7,6 +7,7 @@ import plotly.graph_objs as go
 #LOGIN PAGE
 global currentuser
 global auth
+auth = -1
 
 @app.errorhandler(404)
 def page_not_found(e):
